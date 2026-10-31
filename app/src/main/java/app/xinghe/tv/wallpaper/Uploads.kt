@@ -2,6 +2,7 @@ package app.xinghe.tv.wallpaper
 
 import android.content.Context
 import java.io.File
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /** One file a phone has sent that is neither a picture nor a film: kept as it arrived. */
 class ReceivedFile(
@@ -24,6 +25,12 @@ object Uploads {
 
     private const val MAX_KEPT = 60
 
+    /**
+     * Bumped whenever what is kept changes — a file arrived, or was let go. A sheet that lists
+     * these follows it, so what a phone has just sent is there without leaving and coming back.
+     */
+    val changes = MutableStateFlow(0)
+
     fun dir(context: Context): File = File(context.filesDir, "uploads").apply { mkdirs() }
 
     /**
@@ -41,7 +48,10 @@ object Uploads {
         }.getOrElse {
             target.delete()
             null
-        }.also { trim(context) }
+        }.also {
+            trim(context)
+            if (it != null) changes.value++
+        }
     }
 
     fun all(context: Context): List<ReceivedFile> = dir(context).listFiles()?.mapNotNull { f ->
@@ -52,7 +62,7 @@ object Uploads {
 
     @Synchronized
     fun delete(context: Context, id: String) {
-        File(dir(context), id).takeIf { it.isFile }?.delete()
+        if (File(dir(context), id).takeIf { it.isFile }?.delete() == true) changes.value++
     }
 
     /** Oldest first, so what arrived last is never the thing thrown out. */

@@ -444,7 +444,7 @@ const TEXTS = {
   "发送文件",
   "还没有文件",
   "图片和视频会成为壁纸；其它文件保存在电视上，应用可在电视上安装。",
-  "发送中…",
+  "发送中 {n}/{total}",
   "已收到 {n} 个文件",
   ],
  "en": [
@@ -579,7 +579,7 @@ const TEXTS = {
   "Send files",
   "No files yet",
   "Pictures and films become wallpapers; everything else is kept on the TV, and an app is installed there.",
-  "Sending…",
+  "Sending {n}/{total}",
   "Received {n}",
   ],
  "ru": [
@@ -714,7 +714,7 @@ const TEXTS = {
   "Отправить файлы",
   "Файлов пока нет",
   "Фото и видео становятся обоями; остальное хранится на телевизоре, приложение устанавливается там.",
-  "Отправка…",
+  "Отправка {n}/{total}",
   "Получено: {n}",
   ],
  "uk": [
@@ -849,7 +849,7 @@ const TEXTS = {
   "Надіслати файли",
   "Файлів ще немає",
   "Фото та відео стають шпалерами; решта зберігається на телевізорі, застосунок установлюється там.",
-  "Надсилання…",
+  "Надсилання {n}/{total}",
   "Отримано: {n}",
   ],
  "kk": [
@@ -984,7 +984,7 @@ const TEXTS = {
   "Файл жіберу",
   "Файл жоқ",
   "Сурет пен видео тұсқағаз болады; қалғаны телевизорда сақталады, қосымша сол жерде орнатылады.",
-  "Жіберілуде…",
+  "Жіберілуде {n}/{total}",
   "Қабылданды: {n}",
   ]
 };
@@ -1282,23 +1282,60 @@ async function uploadPhotos(e) {
 
 // Anything but a picture or a film: one file at a time, so a large one never needs twice its
 // size free on the TV. The TV answers after each, and the list on the TV follows along.
-let sendingFiles = 0;
+let sendingFiles = '';
 async function uploadFiles(e) {
   const files = [...e.target.files]; if (!files.length) return;
-  sendingFiles = files.length; stateJson = ''; render();
   let saved = 0;
-  try {
-    for (const f of files) {
-      const fd = new FormData(); fd.append('file', f, f.name);
-      const r = await fetch(base + 'api/files', { method: 'POST', body: fd });
-      if (!r.ok) throw new Error(r.status);
-      const next = await r.json();
+  for (const [i, f] of files.entries()) {
+    sendingFiles = t('sending_files', { n: i + 1, total: files.length }); stateJson = ''; render();
+    try {
+      const next = await sendFile(f, (loaded, total) => {
+        // The word on the button follows the wire: which file, how far, how fast. Redrawn at
+        // most a few times a second; the sending itself is past caring about the page.
+        const pct = total ? Math.round(loaded / total * 100) : 0;
+        sendingFiles = t('sending_files', { n: i + 1, total: files.length })
+          + ' · ' + pct + '% · ' + speedOf(lastRate);
+        const now = performance.now();
+        if (now - lastPaint > 400) { lastPaint = now; stateJson = ''; render(); }
+      });
       if (next.saved) saved++;
       take(next);
-    }
-  } catch (err) { toast(t('toast_send_fail')); }
-  sendingFiles = 0; stateJson = ''; render();
+    } catch (err) { /* Keep going: a failed file should not discard the rest of the batch. */ }
+  }
+  sendingFiles = ''; stateJson = ''; render();
   if (saved) toast(t('toast_files', { n: saved }));
+}
+
+// One file over XHR rather than fetch, for the upload's own progress events; the answered state
+// is handed back when it is done. lastRate keeps the last measured bytes a second over.
+let lastRate = 0;
+let lastPaint = 0;
+function sendFile(f, onProgress) {
+  return new Promise((res, rej) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', base + 'api/files');
+    let mark = { t: performance.now(), loaded: 0 };
+    xhr.upload.onprogress = ev => {
+      onProgress(ev.loaded, ev.total);
+      const now = performance.now();
+      if (now - mark.t > 500 && ev.loaded > mark.loaded) {
+        lastRate = (ev.loaded - mark.loaded) * 1000 / (now - mark.t);
+        mark = { t: now, loaded: ev.loaded };
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) { try { res(JSON.parse(xhr.responseText)); return; } catch (err) {} }
+      rej(new Error(xhr.status || 'net'));
+    };
+    xhr.onerror = () => rej(new Error('net'));
+    const fd = new FormData(); fd.append('file', f, f.name);
+    xhr.send(fd);
+  });
+}
+function speedOf(bps) {
+  if (bps >= 1048576) return (bps / 1048576).toFixed(1) + ' MB/s';
+  if (bps >= 1024) return Math.round(bps / 1024) + ' KB/s';
+  return Math.round(bps) + ' B/s';
 }
 function fileRow(f) {
   const row = el('div', 'item');

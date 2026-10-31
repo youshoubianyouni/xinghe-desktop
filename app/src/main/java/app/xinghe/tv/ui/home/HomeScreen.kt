@@ -74,7 +74,6 @@ import app.xinghe.tv.R
 import app.xinghe.tv.settings.AerialSettings
 import app.xinghe.tv.apps.AppEntry
 import app.xinghe.tv.ui.control.ControlCenter
-import app.xinghe.tv.ui.wallpaper.UploadSheet
 import app.xinghe.tv.ui.wallpaper.WallpaperSheet
 import app.xinghe.tv.ui.wallpaper.WallpaperStudioSheet
 import app.xinghe.tv.wallpaper.PhoneServer
@@ -211,7 +210,7 @@ fun HomeScreen(
     // The phone page, for every sheet that sends from a phone: Personalize, wallpapers and
     // uploads. It listens only while one of them is up, plus a few minutes so an upload already
     // under way can finish.
-    val phoneWanted = overlay is Overlay.Wallpaper || overlay is Overlay.Studio || overlay is Overlay.Upload
+    val phoneWanted = overlay is Overlay.Wallpaper || overlay is Overlay.Studio
     var phoneUrl by remember { mutableStateOf<String?>(null) }
     var phoneQr by remember { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(phoneWanted) {
@@ -768,13 +767,6 @@ fun HomeScreen(
             val chromeAlpha = 1f - (toSaver.value * 2f).coerceIn(0f, 1f)
             val chromeEnabled = gridEnabled && moving == null && !gridMode
             StatusIcon(
-                Glyph.Upload,
-                enabled = chromeEnabled,
-                onClick = { vm.overlay = Overlay.Upload },
-                modifier = Modifier.graphicsLayer { alpha = chromeAlpha },
-            )
-            Spacer(Modifier.width(8.dp))
-            StatusIcon(
                 Glyph.Wallpaper,
                 enabled = chromeEnabled,
                 onClick = { vm.overlay = Overlay.Studio },
@@ -941,14 +933,6 @@ fun HomeScreen(
         // them sends more from a phone.
         WallpaperStudioSheet(
             visible = overlay is Overlay.Studio,
-            phoneUrl = phoneUrl,
-            phoneQr = phoneQr,
-            onDismiss = { vm.overlay = Overlay.None },
-        )
-
-        // Files from a phone: the code to scan, then what has come in.
-        UploadSheet(
-            visible = overlay is Overlay.Upload,
             phoneUrl = phoneUrl,
             phoneQr = phoneQr,
             onDismiss = { vm.overlay = Overlay.None },
