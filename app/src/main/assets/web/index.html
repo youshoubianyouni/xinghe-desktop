@@ -1141,19 +1141,16 @@ function card(w) {
   }
   return b;
 }
-function renderWallpapers() {
-  $('#heroImg').src = `${base}thumb/${encodeURIComponent(state.selected)}`;
-  $('#heroTitle').textContent = titleOf(state.selected);
-  const root = $('#sections'); root.replaceChildren();
+
+// The sends, on the home tab under the arrangement: add pictures, films and anything else from
+// this phone, one press from the grid itself. What a picture or a film becomes once it is there
+// is chosen on the wallpaper tab; this is only where they come in.
+function appendSendGroups(root) {
   for (const [kind, title, sub] of groups) {
+    if (kind !== 'photo' && kind !== 'video' && kind !== 'files') continue;
     let list = state.wallpapers.filter(w => w.kind === kind);
-    if (kind === 'daily' && list.length) list = [{ id: state.latestDaily, kind: 'daily', title: t('daily_title'), caption: t('daily_caption') }, ...list];
     // Two or more photos: one a day, as on the TV (#27, #194).
     if (kind === 'photo' && list.length > 1) list = [{ id: state.rotatePhotos, kind: 'photos', title: t('rotate_title'), caption: t('rotate_caption') }, ...list];
-    // Photos ask for pictures even with none; so do the films, whose own list is state.videos and
-    // not yet among the wallpapers while the rescan runs (1.6.0).
-    // Files is its own section with no wallpapers behind it.
-    if (!list.length && kind !== 'photo' && kind !== 'video' && kind !== 'files') continue;
     root.appendChild(el('h2', 'big', title));
     if (kind === 'photo') {
       const up = el('label', 'btn add');
@@ -1163,6 +1160,11 @@ function renderWallpapers() {
       up.querySelector('input').onchange = uploadPhotos;
       root.appendChild(up);
       if (!list.length) { root.appendChild(el('p', 'empty', t('empty_photos'))); continue; }
+      const g = el('div', 'grid');
+      list.forEach(w => g.appendChild(card(w)));
+      root.appendChild(g);
+      if (list.length === 1) root.appendChild(el('p', 'foot', t('add_second')));
+      continue;
     }
     // The films, as their own group next to the photos: add from the phone, tap a film to make
     // it the wallpaper — the same pick its card does on the TV.
@@ -1197,11 +1199,30 @@ function renderWallpapers() {
       root.appendChild(el('p', 'foot', t('files_hint')));
       continue;
     }
+  }
+}
+
+function renderWallpapers() {
+  $('#heroImg').src = `${base}thumb/${encodeURIComponent(state.selected)}`;
+  $('#heroTitle').textContent = titleOf(state.selected);
+  const root = $('#sections'); root.replaceChildren();
+  for (const [kind, title, sub] of groups) {
+    // Pictures, films and files are sent from the home tab now, under the arrangement; what is
+    // left here is only what a wallpaper can be.
+    if (kind === 'photo' || kind === 'video' || kind === 'files') continue;
+    let list = state.wallpapers.filter(w => w.kind === kind);
+    if (kind === 'daily' && list.length) list = [{ id: state.latestDaily, kind: 'daily', title: t('daily_title'), caption: t('daily_caption') }, ...list];
+    // Two or more photos: one a day, as on the TV (#27, #194).
+    if (kind === 'photo' && list.length > 1) list = [{ id: state.rotatePhotos, kind: 'photos', title: t('rotate_title'), caption: t('rotate_caption') }, ...list];
+    // Photos ask for pictures even with none; so do the films, whose own list is state.videos and
+    // not yet among the wallpapers while the rescan runs (1.6.0).
+    // Files is its own section with no wallpapers behind it.
+    if (!list.length && kind !== 'photo' && kind !== 'video' && kind !== 'files') continue;
+    root.appendChild(el('h2', 'big', title));
     const g = el('div', 'grid');
     list.forEach(w => g.appendChild(card(w)));
     root.appendChild(g);
     if (sub) root.appendChild(el('p', 'foot', sub));
-    if (kind === 'photo' && list.length === 1) root.appendChild(el('p', 'foot', t('add_second')));
   }
 }
 function videoRow(video) {
@@ -1237,7 +1258,10 @@ function videoRow(video) {
     e.stopPropagation();
     if (!confirm(t('confirm_video_delete', { name: video.name }))) return;
     del.disabled = true;
-    try { take(await api('api/videos/delete', { id: video.id })); } catch (err) { del.disabled = false; toast(t('toast_video_bad')); }
+    try {
+      const next = await api('api/videos/delete', { id: video.id });
+      if (next.removed === false) { del.disabled = false; toast(t('toast_video_bad')); } else take(next);
+    } catch (err) { del.disabled = false; toast(t('toast_video_bad') + ' · ' + (err && err.message ? err.message : 'net')); }
   };
   row.appendChild(del);
   return row;
@@ -1283,7 +1307,8 @@ function fileRow(f) {
   del.onclick = async e => {
     e.stopPropagation();
     del.disabled = true;
-    try { take(await api('api/files/delete', { id: f.id })); } catch (err) { del.disabled = false; toast(t('toast_send_fail')); }
+    try { take(await api('api/files/delete', { id: f.id })); }
+    catch (err) { del.disabled = false; toast(t('toast_send_fail') + ' · ' + (err && err.message ? err.message : 'net')); }
   };
   row.appendChild(del);
   return row;
@@ -1488,6 +1513,8 @@ function renderArrange(push) {
   if (!L.ready) view.appendChild(el('p', 'foot', t('arrange_unready'))).style.marginTop = '20px';
   if (folderTile) buildFolderView(view, folderTile, L.folders[arrView] || []);
   else buildHomeView(view, L);
+  // The sends, under the arrangement: pictures, films and files, one press from the grid itself.
+  if (!folderTile) appendSendGroups(view);
   $('#homeBody').replaceChildren(view);
   $('#inputsBox').hidden = !(state.inputs || []).length || !!folderTile;
   if (tab) setTitle();

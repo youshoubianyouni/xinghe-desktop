@@ -84,13 +84,21 @@ class PhoneServer private constructor(private val context: Context, private val 
                 session.method == Method.POST && path == "/api/upload" -> upload(session)
                 session.method == Method.POST && path == "/api/files" -> receive(session)
                 session.method == Method.POST && path == "/api/files/delete" -> {
-                    Uploads.delete(context, form(session)["id"].orEmpty())
+                    // Nothing here may take the answer down: a delete that went astray says so in
+                    // the state it returns, rather than leaving the phone's page to guess.
+                    val id = form(session)["id"].orEmpty()
+                    runCatching { Uploads.delete(context, id) }
+                        .onFailure { DiagLog.i("file delete $id failed: ${it.javaClass.simpleName}: ${it.message}") }
                     json(state())
                 }
                 session.method == Method.POST && path == "/api/videos/upload" -> video(session)
                 session.method == Method.POST && path == "/api/videos/delete" -> {
-                    val removed = ScreensaverVideos.delete(context, form(session)["id"].orEmpty())
-                    Wallpapers.refreshVideosSync()
+                    val id = form(session)["id"].orEmpty()
+                    val removed = runCatching { ScreensaverVideos.delete(context, id) }
+                        .onFailure { DiagLog.i("video delete $id failed: ${it.javaClass.simpleName}: ${it.message}") }
+                        .getOrDefault(false)
+                    runCatching { Wallpapers.refreshVideosSync() }
+                        .onFailure { DiagLog.i("video rescan after delete $id failed: ${it.javaClass.simpleName}") }
                     json(state().put("removed", removed))
                 }
                 path.startsWith("/tile/") -> tile(java.net.URLDecoder.decode(path.removePrefix("/tile/").substringBefore("?"), "UTF-8"))
