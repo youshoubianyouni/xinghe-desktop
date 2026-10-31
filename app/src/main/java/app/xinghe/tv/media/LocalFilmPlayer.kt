@@ -371,6 +371,12 @@ class LocalFilmPlayer(
         val info = MediaCodec.BufferInfo()
         var first = true
         var inputDone = false
+        // The clock: each frame is shown one frame-time after the last one was, measured on the
+        // wall, anchored to the picture's own presentation times. Without this the decoder's pace
+        // is the film's pace, and a hardware decoder runs faster than the film was shot (the
+        // picture sped up and stuttered, which is what ExoPlayer's AudioTrack used to pace).
+        var shownPts = Long.MIN_VALUE
+        var shownAt = 0L
         while (!released) {
             if (!wantCodec) return false
             if (!wantPlay) {
@@ -424,6 +430,22 @@ class LocalFilmPlayer(
             val indexOut = codec.dequeueOutputBuffer(info, 0)
             if (indexOut >= 0) {
                 val render = info.size > 0
+                // Hold the frame until the wall catches up with the picture: as long again after
+                // the last frame as this frame's time sits after the last frame's. The wait is on
+                // the absolute minute each frame is due at, so nothing drifts; a pause, a seek or
+                // a restart simply leaves the last showing behind, and the next frame at once.
+                if (render && shownPts != Long.MIN_VALUE && shownAt != 0L) {
+                    val due = shownAt + (info.presentationTimeUs - shownPts) * 1_000
+                    while (!released && wantPlay && wantCodec && surface() === session.surface) {
+                        val left = due - System.nanoTime()
+                        if (left <= 2_000_000L) break
+                        try { Thread.sleep(if (left > 12_000_000L) 8L else 2L) } catch (e: InterruptedException) { break }
+                    }
+                }
+                if (render) {
+                    shownPts = info.presentationTimeUs
+                    shownAt = System.nanoTime()
+                }
                 codec.releaseOutputBuffer(indexOut, render)
                 if (render) {
                     position = info.presentationTimeUs / 1000

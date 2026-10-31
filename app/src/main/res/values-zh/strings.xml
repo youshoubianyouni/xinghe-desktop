@@ -88,9 +88,6 @@
     <string name="wp_live">动态航拍。在主屏幕第一行停 10 秒后开始播放，按任意键停在当前画面并留作壁纸，下次从这一帧接着播。</string>
     <string name="wp_video_title">动态壁纸</string>
     <string name="wp_video">把从手机上传的视频作为动态壁纸，在主页和全部应用页一直播放。按 OK 打开文件夹选择，选定后不再轮播。</string>
-    <string name="videos_title">动态壁纸</string>
-    <string name="videos_hint">选择一个视频作为动态壁纸，选定后一直播放，不再轮播。</string>
-    <string name="videos_empty">还没有上传视频。在屏保页扫码，即可从手机上传。</string>
     <string name="wp_photos_rotate">我的照片 · 每天换</string>
     <string name="wp_daily_note">必应每日一图，每天自动换成当天的。</string>
     <string name="wp_photos_rotate_note">从你的照片里每天换一张。</string>
@@ -101,6 +98,17 @@
     <string name="ss_aerial">航拍</string>
     <string name="ss_photos">照片</string>
     <string name="ss_clock">时钟</string>
+    <string name="wp_studio_hint">按一张图片设为壁纸，按一段视频让它播放。扫码即可从手机发送更多。</string>
+    <string name="wp_studio_empty">还没有你自己的壁纸。扫码即可从手机发送图片或视频。</string>
+    <string name="wp_studio_phone">扫码即可从手机发送图片和视频作为壁纸。手机和电视需在同一网络。</string>
+    <string name="wp_my_photos">我的图片</string>
+    <string name="wp_my_videos">我的视频</string>
+    <string name="up_title">发送到电视</string>
+    <string name="up_body">用手机扫一扫（与电视同一 Wi-Fi），即可发送文件：图片和视频会成为壁纸，其它文件保存在这里，应用可从列表直接安装。</string>
+    <string name="up_empty">还没有收到文件。扫码即可从手机发送。</string>
+    <string name="up_phone_title">发送文件到电视</string>
+    <string name="up_phone_body">扫码即可发送图片、视频和文件到电视。手机和电视需在同一网络。</string>
+    <string name="up_install">安装</string>
     <string name="wp_phone_title">用手机设置</string>
     <string name="wp_phone_body">扫码后在手机上发照片当壁纸、更换 App 图标、设置天气城市。手机和电视需连接同一网络。</string>
     <string name="wp_phone_offline">电视联网后即可用手机设置。</string>

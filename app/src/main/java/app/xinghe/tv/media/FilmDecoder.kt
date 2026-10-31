@@ -15,6 +15,13 @@ object FilmDecoder {
     /** Whether one of our players has the decoder open just now. */
     val held: Boolean get() = busy
 
+    /**
+     * Said the moment the decoder goes from taken to free — the film behind Home has stopped, and
+     * whatever was waiting for the way (a film without a picture of its own) may have it now.
+     * Called off the thread that let it go; never while a player still holds it.
+     */
+    var onFree: (() -> Unit)? = null
+
     private val lock = Any()
     private val owners = HashSet<Int>()
 
@@ -28,9 +35,11 @@ object FilmDecoder {
 
     /** The other half of [hold]: whether the decoder is free again is answered by [held]. */
     fun drop(owner: Any) {
-        synchronized(lock) {
+        val freed = synchronized(lock) {
             owners.remove(System.identityHashCode(owner))
             busy = owners.isNotEmpty()
+            !busy
         }
+        if (freed) onFree?.invoke()
     }
 }

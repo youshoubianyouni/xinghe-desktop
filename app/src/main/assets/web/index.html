@@ -310,7 +310,7 @@ let state = null, stateJson = '';
 
 // The language: ?lang=ru in the address, else the one picked under More (kept on the phone), else the
 // first of the phone's preferred languages that has a table, else English. Keys are in KEYS, one array of texts per language.
-const KEYS = ["screensaver", "screensaver_short", "ss_aerial", "ss_photos", "ss_clock", "focus", "focus_high", "focus_standard", "weather", "city_ph", "set", "upload_label", "feedback_h", "feedback_hint", "diag_show", "diag_copy", "diag_github", "hint_aerial", "hint_photos", "hint_clock", "g_live", "g_live_sub", "g_daily", "g_daily_sub", "g_photo", "g_builtin", "g_auto", "toast_wallpaper", "aria_delete", "confirm_delete", "wx_clear", "wx_partlycloudy", "wx_cloudy", "wx_fog", "wx_rain", "wx_snow", "wx_thunder", "wx_chosen", "wx_auto_btn", "toast_auto", "wx_guessed", "wx_none", "tag_source", "aria_rename", "toast_renamed", "toast_name_reset", "toast_rename_fail", "aria_reset_icon", "toast_icon_reset", "focus_hint_standard", "focus_hint_high", "daily_title", "daily_caption", "rotate_title", "rotate_caption", "empty_photos", "add_second", "toast_tv_updated", "sending_n", "toast_added", "toast_no_photos", "toast_send_fail", "toast_city_set", "toast_city_nf", "toast_set_fail", "toast_sending_icon", "toast_icon_set", "toast_icon_bad", "diag_collecting", "toast_diag_fail", "toast_copied", "toast_copy_manual", "language", "hint_follows", "ss_videos", "hint_videos", "videos_h", "videos_upload", "videos_hint", "videos_empty", "confirm_video_delete", "toast_videos_added", "toast_video_bad", "sending_video", "hint_system", "tab_home", "tab_more", "current_wp", "cancel", "save", "name_ph", "rename_hint", "change_icon", "this_tv", "folder_count", "folder_ph", "inputs_h", "inputs_hint", "rename_hint_app", "was_named", "arrange_hint", "arrange_unready", "hidden_h", "hidden_none", "hidden_locked", "show_app", "hide_app", "to_folder", "new_folder", "out_of_folder", "ungroup", "ungroup_confirm", "folder_hint", "toast_hidden", "toast_shown", "toast_in_folder", "toast_out_folder", "toast_ungrouped", "tab_looks", "looks_title", "show_on_home", "source_device", "source_plain", "source_device_hint", "tv_model", "g_video"];
+const KEYS = ["screensaver", "screensaver_short", "ss_aerial", "ss_photos", "ss_clock", "focus", "focus_high", "focus_standard", "weather", "city_ph", "set", "upload_label", "feedback_h", "feedback_hint", "diag_show", "diag_copy", "diag_github", "hint_aerial", "hint_photos", "hint_clock", "g_live", "g_live_sub", "g_daily", "g_daily_sub", "g_photo", "g_builtin", "g_auto", "toast_wallpaper", "aria_delete", "confirm_delete", "wx_clear", "wx_partlycloudy", "wx_cloudy", "wx_fog", "wx_rain", "wx_snow", "wx_thunder", "wx_chosen", "wx_auto_btn", "toast_auto", "wx_guessed", "wx_none", "tag_source", "aria_rename", "toast_renamed", "toast_name_reset", "toast_rename_fail", "aria_reset_icon", "toast_icon_reset", "focus_hint_standard", "focus_hint_high", "daily_title", "daily_caption", "rotate_title", "rotate_caption", "empty_photos", "add_second", "toast_tv_updated", "sending_n", "toast_added", "toast_no_photos", "toast_send_fail", "toast_city_set", "toast_city_nf", "toast_set_fail", "toast_sending_icon", "toast_icon_set", "toast_icon_bad", "diag_collecting", "toast_diag_fail", "toast_copied", "toast_copy_manual", "language", "hint_follows", "ss_videos", "hint_videos", "videos_h", "videos_upload", "videos_hint", "videos_empty", "confirm_video_delete", "toast_videos_added", "toast_video_bad", "sending_video", "hint_system", "tab_home", "tab_more", "current_wp", "cancel", "save", "name_ph", "rename_hint", "change_icon", "this_tv", "folder_count", "folder_ph", "inputs_h", "inputs_hint", "rename_hint_app", "was_named", "arrange_hint", "arrange_unready", "hidden_h", "hidden_none", "hidden_locked", "show_app", "hide_app", "to_folder", "new_folder", "out_of_folder", "ungroup", "ungroup_confirm", "folder_hint", "toast_hidden", "toast_shown", "toast_in_folder", "toast_out_folder", "toast_ungrouped", "tab_looks", "looks_title", "show_on_home", "source_device", "source_plain", "source_device_hint", "tv_model", "g_video", "g_files", "files_upload", "files_empty", "files_hint", "sending_files", "toast_files"];
 const TEXTS = {
  "zh": [
 
@@ -439,7 +439,13 @@ const TEXTS = {
   "默认",
   "选一个设备，电视上这个信号源的图标会换成它的样子，名字也跟着变；自己起的名字会被替换。",
   "型号",
-  "Mbps"
+  "我的视频",
+  "文件",
+  "发送文件",
+  "还没有文件",
+  "图片和视频会成为壁纸；其它文件保存在电视上，应用可在电视上安装。",
+  "发送中…",
+  "已收到 {n} 个文件",
   ],
  "en": [
 
@@ -568,7 +574,13 @@ const TEXTS = {
   "Default",
   "Pick a device and the tile on the TV takes its look and its name; a name you typed is replaced.",
   "Model",
-  "Mbps"
+  "My Videos",
+  "Files",
+  "Send files",
+  "No files yet",
+  "Pictures and films become wallpapers; everything else is kept on the TV, and an app is installed there.",
+  "Sending…",
+  "Received {n}",
   ],
  "ru": [
 
@@ -697,7 +709,13 @@ const TEXTS = {
   "По умолчанию",
   "Выберите устройство — плитка на телевизоре примет его вид и название; введённое вами название заменится.",
   "Модель",
-  "Mbps"
+  "Мои видео",
+  "Файлы",
+  "Отправить файлы",
+  "Файлов пока нет",
+  "Фото и видео становятся обоями; остальное хранится на телевизоре, приложение устанавливается там.",
+  "Отправка…",
+  "Получено: {n}",
   ],
  "uk": [
 
@@ -826,7 +844,13 @@ const TEXTS = {
   "Типово",
   "Виберіть пристрій — плитка на телевізорі набуде його вигляду й назви; введену вами назву буде замінено.",
   "Модель",
-  "Mbps"
+  "Мої відео",
+  "Файли",
+  "Надіслати файли",
+  "Файлів ще немає",
+  "Фото та відео стають шпалерами; решта зберігається на телевізорі, застосунок установлюється там.",
+  "Надсилання…",
+  "Отримано: {n}",
   ],
  "kk": [
 
@@ -955,7 +979,13 @@ const TEXTS = {
   "Әдепкі",
   "Құрылғыны таңдасаңыз, теледидардағы плитка оның түрі мен атауын алады; өзіңіз жазған атау ауыстырылады.",
   "Модель",
-  "Mbps"
+  "Менің видеоларым",
+  "Файлдар",
+  "Файл жіберу",
+  "Файл жоқ",
+  "Сурет пен видео тұсқағаз болады; қалғаны телевизорда сақталады, қосымша сол жерде орнатылады.",
+  "Жіберілуде…",
+  "Қабылданды: {n}",
   ]
 };
 const LANGS = Object.keys(TEXTS);
@@ -1000,7 +1030,8 @@ const groups = [
   ['photo', t('g_photo'), ''],
   ['video', t('g_video'), ''],
   ['builtin', t('g_builtin'), ''],
-  ['auto', t('g_auto'), '']
+  ['auto', t('g_auto'), ''],
+  ['files', t('g_files'), ''],
 ];
 const ICON = {
   check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -1121,7 +1152,8 @@ function renderWallpapers() {
     if (kind === 'photo' && list.length > 1) list = [{ id: state.rotatePhotos, kind: 'photos', title: t('rotate_title'), caption: t('rotate_caption') }, ...list];
     // Photos ask for pictures even with none; so do the films, whose own list is state.videos and
     // not yet among the wallpapers while the rescan runs (1.6.0).
-    if (!list.length && kind !== 'photo' && kind !== 'video') continue;
+    // Files is its own section with no wallpapers behind it.
+    if (!list.length && kind !== 'photo' && kind !== 'video' && kind !== 'files') continue;
     root.appendChild(el('h2', 'big', title));
     if (kind === 'photo') {
       const up = el('label', 'btn add');
@@ -1147,6 +1179,22 @@ function renderWallpapers() {
       for (const video of videos) list.appendChild(videoRow(video));
       root.appendChild(list);
       root.appendChild(el('p', 'foot', t('videos_hint')));
+      continue;
+    }
+    // The files, whatever they are: send from here, the TV keeps them, an APK is installed there.
+    if (kind === 'files') {
+      const up = el('label', 'btn add');
+      up.innerHTML = `${ICON.plus}<span></span><input type="file" multiple hidden>`;
+      up.querySelector('span').textContent = sendingFiles ? t('sending_files') : t('files_upload');
+      if (sendingFiles) up.setAttribute('disabled', '');
+      up.querySelector('input').onchange = uploadFiles;
+      root.appendChild(up);
+      const list = el('div', 'list'); list.style.marginTop = '10px';
+      const files = state.files || [];
+      if (!files.length) { const row = el('div', 'item'); row.appendChild(el('span', 'txt', t('files_empty'))).style.color = 'var(--secondary)'; list.appendChild(row); }
+      for (const f of files) list.appendChild(fileRow(f));
+      root.appendChild(list);
+      root.appendChild(el('p', 'foot', t('files_hint')));
       continue;
     }
     const g = el('div', 'grid');
@@ -1206,6 +1254,44 @@ async function uploadPhotos(e) {
     const next = await r.json(); uploading = 0; take(next);
     toast(next.added ? t('toast_added', { n: next.added }) : t('toast_no_photos'));
   } catch (err) { uploading = 0; stateJson = ''; render(); toast(t('toast_send_fail')); }
+}
+
+// Anything but a picture or a film: one file at a time, so a large one never needs twice its
+// size free on the TV. The TV answers after each, and the list on the TV follows along.
+let sendingFiles = 0;
+async function uploadFiles(e) {
+  const files = [...e.target.files]; if (!files.length) return;
+  sendingFiles = files.length; stateJson = ''; render();
+  let saved = 0;
+  try {
+    for (const f of files) {
+      const fd = new FormData(); fd.append('file', f, f.name);
+      const r = await fetch(base + 'api/files', { method: 'POST', body: fd });
+      if (!r.ok) throw new Error(r.status);
+      const next = await r.json();
+      if (next.saved) saved++;
+      take(next);
+    }
+  } catch (err) { toast(t('toast_send_fail')); }
+  sendingFiles = 0; stateJson = ''; render();
+  if (saved) toast(t('toast_files', { n: saved }));
+}
+function fileRow(f) {
+  const row = el('div', 'item');
+  row.appendChild(el('span', 'txt', f.name + '  ·  ' + sizeOf(f.size)));
+  const del = el('button', 'link', t('aria_delete')); del.style.color = 'var(--danger)';
+  del.onclick = async e => {
+    e.stopPropagation();
+    del.disabled = true;
+    try { take(await api('api/files/delete', { id: f.id })); } catch (err) { del.disabled = false; toast(t('toast_send_fail')); }
+  };
+  row.appendChild(del);
+  return row;
+}
+function sizeOf(n) {
+  if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
+  if (n >= 1024) return Math.round(n / 1024) + ' KB';
+  return n + ' B';
 }
 
 /* Screensaver tab. */

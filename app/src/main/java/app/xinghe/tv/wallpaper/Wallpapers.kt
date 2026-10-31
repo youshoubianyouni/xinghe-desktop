@@ -1,6 +1,15 @@
 package app.xinghe.tv.wallpaper
 
 import android.content.Context
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.media.Image
+import android.media.ImageReader
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.SystemClock
@@ -29,6 +38,7 @@ import app.xinghe.tv.media.FilmDecoder
 import app.xinghe.tv.system.DiagLog
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
@@ -182,8 +192,14 @@ object Wallpapers {
         // Installs from before 1.42 have a baked picture but no copy yet.
         scope.launch(Dispatchers.IO) { keepForLockedBoot() }
         // Nothing is playing yet, so the decoder is free: the films that came in without a picture
-        // of their own get one now, before the day's first film asks for the way.
-        scope.launch(Dispatchers.IO) { catchUpFrames("start") }
+        // of their own get one now, before the day's first film asks for the way. Over the next
+        // few moments rather than once: the wallpaper's film starts right after and holds the
+        // decoder, and a first round finding it held is no answer at all — the film it cannot
+        // read waits for a round when the way is free.
+        requestFrames("start")
+        // And when the way is free for good: the film stopped, the screensaver took over, the
+        // surface went. Whatever never got a picture gets one in the quiet that follows.
+        FilmDecoder.onFree = { requestFrames("decoder-free") }
     }
 
     /**
@@ -327,10 +343,16 @@ object Wallpapers {
      * took the first null for the whole answer, and showed a gradient where the video's own
      * first frame should be (TCL 65S515D).
      */
-    private fun videoFirstFrame(video: ScreensaverVideo, w: Int, h: Int): Bitmap? {
+    private fun videoFirstFrame(video: ScreensaverVideo, w: Int, h: Int, withCodec: Boolean = false): Bitmap? {
         val cache = frameCache(video, w, h)
         if (cache.exists()) BitmapFactory.decodeFile(cache.path)?.let { return it }
-        val opening = decodeFirstFrame(video.file, w, h) ?: return null
+        val opening = decodeFirstFrame(video.file, w, h)
+            // The retriever has been seen to give up on films the decoder itself plays fine
+            // (HEVC from a phone, an odd pixel format). With the one decoder free or lent to us,
+            // a real decode of one frame is worth the try; while the film on Home holds the
+            // decoder, it never is.
+            ?: (if (withCodec) codecFirstFrame(video.file, w, h) else null)
+            ?: return null
         // Plenty of films open on a black frame and fade in: a card with a black picture on it
         // looks no different from a card with nothing to show.
         val frame = if (Images.blank(opening)) laterFrame(video.file, w, h)?.also { opening.recycle() } ?: opening else opening
@@ -392,8 +414,8 @@ object Wallpapers {
             val lender = borrowDecoder
             // Borrowed rather than taken: a second decoder opened beside the film on Home stops
             // that film where it stands (1.5.5), which a picture for a card does not pay for.
-            if (FilmDecoder.held) lender?.invoke { frame = videoFirstFrame(video, CARD_W, CARD_H) }
-            else frame = videoFirstFrame(video, CARD_W, CARD_H)
+            if (FilmDecoder.held) lender?.invoke { frame = videoFirstFrame(video, CARD_W, CARD_H, withCodec = true) }
+            else frame = videoFirstFrame(video, CARD_W, CARD_H, withCodec = true)
             val takes = SystemClock.elapsedRealtime() - at
             if (frame != null) made++
             DiagLog.i("video frame ${video.name}: ${if (frame != null) "made in $takes ms" else "would not decode ($takes ms)"} ($reason)")
@@ -415,9 +437,9 @@ object Wallpapers {
         scope.launch {
             framesJob?.cancel()
             framesJob = scope.launch(Dispatchers.IO) {
-                repeat(4) { round ->
+                repeat(6) { round ->
                     if (catchUpFrames(reason)) return@launch
-                    delay(if (round == 0) 500L else 4_000L)
+                    delay(if (round == 0) 500L else if (round < 3) 4_000L else 8_000L)
                 }
             }
         }
@@ -460,6 +482,155 @@ object Wallpapers {
         // a second one opened beside the wallpaper's stops that wallpaper where it stands (the
         // film froze and never came back, 1.5.5). The phone's thumbnail is the frame of record.
         return null
+    }
+
+    /**
+     * One real decode of the film's first frame, on [MediaCodec] — the same machinery the
+     * wallpaper's film itself plays through. For the films whose picture the retriever will not
+     * answer (a phone's HEVC, an odd pixel format): it is decoded to memory, turned into a bitmap
+     * with the crop and the rotation the file asks for. Only for a moment when the TV's one video
+     * decoder is free or lent to us — never beside a film that is playing.
+     */
+    private fun codecFirstFrame(file: File, w: Int, h: Int): Bitmap? {
+        if (Build.VERSION.SDK_INT < 23) return null
+        // One at a time, however many paths came here at once: two of these opened beside a
+        // playing film is what stopped films dead (1.5.5). A path finding the way taken simply
+        // leaves, and the next round tries again.
+        if (!frameCodec.tryLock()) return null
+        try {
+            return codecFirstFrameLocked(file, w, h)
+        } finally {
+            frameCodec.unlock()
+        }
+    }
+
+    private val frameCodec = Mutex()
+
+    private fun codecFirstFrameLocked(file: File, w: Int, h: Int): Bitmap? {
+        val extractor = MediaExtractor()
+        return try {
+            extractor.setDataSource(file.absolutePath)
+            var track = -1
+            var format: MediaFormat? = null
+            var mime: String? = null
+            for (i in 0 until extractor.trackCount) {
+                val f = extractor.getTrackFormat(i)
+                val m = f.getString(MediaFormat.KEY_MIME) ?: continue
+                if (m.startsWith("video/")) { track = i; format = f; mime = m; break }
+            }
+            if (track < 0 || format == null || mime == null) return null
+            extractor.selectTrack(track)
+            val width = format.getInteger(MediaFormat.KEY_WIDTH)
+            val height = format.getInteger(MediaFormat.KEY_HEIGHT)
+            val reader = ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, 2)
+            val codec = MediaCodec.createDecoderByType(mime)
+            try {
+                codec.configure(format, reader.surface, null, 0)
+                codec.start()
+                val info = MediaCodec.BufferInfo()
+                var inputDone = false
+                var frame: Bitmap? = null
+                val deadline = SystemClock.elapsedRealtime() + 5_000
+                while (frame == null && SystemClock.elapsedRealtime() < deadline) {
+                    if (!inputDone) {
+                        val inIdx = codec.dequeueInputBuffer(10_000L)
+                        if (inIdx >= 0) {
+                            val buf = codec.getInputBuffer(inIdx)
+                            val size = if (buf == null) -1 else extractor.readSampleData(buf, 0)
+                            if (size < 0) {
+                                codec.queueInputBuffer(inIdx, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                                inputDone = true
+                            } else {
+                                codec.queueInputBuffer(inIdx, 0, size, extractor.sampleTime, 0)
+                                extractor.advance()
+                            }
+                        }
+                    }
+                    val outIdx = codec.dequeueOutputBuffer(info, 10_000L)
+                    if (outIdx >= 0) {
+                        if (info.size > 0) {
+                            val image = reader.acquireLatestImage()
+                            if (image != null) {
+                                frame = runCatching { imageToBitmap(image, file, codec.outputFormat) }
+                                    .onFailure { Log.w(TAG, "a decoded frame could not be kept", it) }
+                                    .getOrNull()
+                                image.close()
+                            }
+                        }
+                        codec.releaseOutputBuffer(outIdx, false)
+                        if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
+                    }
+                }
+                frame?.let { sized(it, w, h) }
+            } finally {
+                runCatching { codec.stop() }
+                runCatching { codec.release() }
+                runCatching { reader.close() }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "could not decode a frame by codec", e)
+            null
+        } finally {
+            runCatching { extractor.release() }
+        }
+    }
+
+    /** A decoded [Image] as a bitmap: NV21 through a JPEG, cropped and turned upright. */
+    private fun imageToBitmap(image: Image, file: File, outputFormat: MediaFormat): Bitmap? {
+        val width = image.width
+        val height = image.height
+        // The coded size can carry padding the picture itself asks to be cut away.
+        fun crop(key: String) = if (outputFormat.containsKey(key)) outputFormat.getInteger(key) else -1
+        val left = crop("crop-left"); val right = crop("crop-right")
+        val top = crop("crop-top"); val bottom = crop("crop-bottom")
+        val rect = if (right > left && bottom > top) Rect(left, top, right + 1, bottom + 1)
+        else Rect(0, 0, width, height)
+
+        // The three planes of YUV_420_888, whatever stride the maker chose, into NV21.
+        val y = image.planes[0]; val u = image.planes[1]; val v = image.planes[2]
+        val nv21 = ByteArray(width * height * 3 / 2)
+        var pos = 0
+        if (y.rowStride == width) {
+            y.buffer.get(nv21, 0, width * height); pos = width * height
+        } else {
+            for (row in 0 until height) {
+                y.buffer.position(row * y.rowStride)
+                y.buffer.get(nv21, pos, width)
+                pos += width
+            }
+        }
+        for (row in 0 until height / 2) {
+            for (col in 0 until width / 2) {
+                nv21[pos++] = v.buffer.get(row * v.rowStride + col * v.pixelStride)
+                nv21[pos++] = u.buffer.get(row * u.rowStride + col * u.pixelStride)
+            }
+        }
+        val jpeg = ByteArrayOutputStream().also { out ->
+            YuvImage(nv21, ImageFormat.NV21, width, height, null).compressToJpeg(rect, 92, out)
+        }.toByteArray()
+        val picture = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size) ?: return null
+
+        // The turn is in the file's header, as the platform's own player applies it.
+        val rotation = rotationOf(file)
+        if (rotation == 0) return picture
+        val turned = Matrix().apply { postRotate(rotation.toFloat()) }
+        val upright = Bitmap.createBitmap(picture, 0, 0, picture.width, picture.height, turned, true)
+        return if (upright !== picture) {
+            picture.recycle(); upright
+        } else upright
+    }
+
+    /** The picture's rotation, in degrees, as the file's own header has it. */
+    private fun rotationOf(file: File): Int {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.absolutePath)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+        } catch (e: Exception) {
+            0
+        } finally {
+            runCatching { retriever.release() }
+        }
     }
 
     /** Opens a retriever on [path] and asks it for a frame; null when this way does not work here. */

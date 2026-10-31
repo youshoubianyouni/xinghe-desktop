@@ -89,9 +89,6 @@
     <string name="wp_live">Moving aerial films. They start after 10 seconds still on the top row of Home and stop on the frame showing at any key, which stays as the picture; the next film picks up from there.</string>
     <string name="wp_video_title">Video Wallpaper</string>
     <string name="wp_video">Your uploaded videos play behind Home, through the all-apps view as well. Press OK to open the folder and pick one: it plays from then on, no taking turns.</string>
-    <string name="videos_title">Video Wallpaper</string>
-    <string name="videos_hint">Pick one video as the wallpaper: it plays from then on, no taking turns.</string>
-    <string name="videos_empty">No videos uploaded yet. Scan the code on the screensaver page to send one from your phone.</string>
     <string name="wp_photos_rotate">My Photos, Daily</string>
     <string name="wp_daily_note">Bing\'s photo of the day, changing to the new one every day.</string>
     <string name="wp_photos_rotate_note">A different one of your photos each day.</string>
@@ -102,6 +99,17 @@
     <string name="ss_aerial">Aerial</string>
     <string name="ss_photos">Photos</string>
     <string name="ss_clock">Clock</string>
+    <string name="wp_studio_hint">Press a picture to put it behind Home, a film to play it there. Scan the code to send more from your phone.</string>
+    <string name="wp_studio_empty">Nothing of your own yet. Scan the code to send pictures or films from your phone.</string>
+    <string name="wp_studio_phone">Scan to send pictures and films as wallpapers. Phone and TV must be on the same network.</string>
+    <string name="wp_my_photos">My Photos</string>
+    <string name="wp_my_videos">My Videos</string>
+    <string name="up_title">Send to TV</string>
+    <string name="up_body">Scan the code with a phone on the same Wi-Fi, then send files. Pictures and films become wallpapers; the rest are kept here, and an app is installed from this list.</string>
+    <string name="up_empty">Nothing sent yet. Scan the code to send files from your phone.</string>
+    <string name="up_phone_title">Send files to the TV</string>
+    <string name="up_phone_body">Scan to send pictures, films and files to the TV. Phone and TV must be on the same network.</string>
+    <string name="up_install">Install</string>
     <string name="wp_phone_title">Set up with your phone</string>
     <string name="wp_phone_body">Scan to send photos as wallpapers, change app icons and set the weather\'s city from your phone. Phone and TV must be on the same network.</string>
     <string name="wp_phone_offline">Connect the TV to a network to set up with your phone.</string>

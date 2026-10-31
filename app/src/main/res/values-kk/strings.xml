@@ -81,9 +81,6 @@
     <string name="wp_live">Аэрожиын · басты экранда 10 секундтан кейін ойнайды</string>
     <string name="wp_video_title">Бейне тұсқағаз</string>
     <string name="wp_video">Жүктелген бейнерлер басты экранның артында, барлық қолданбалар көрінісінде де ойнайды. Қалтаны ашу үшін OK басыңыз, біреуін таңдаңыз: ол өзі ойнай береді, ауыспайды.</string>
-    <string name="videos_title">Бейне тұсқағаз</string>
-    <string name="videos_hint">Тұсқағаз ретінде бір бейне таңдаңыз: ол өзі ойнай береді, ауыспайды.</string>
-    <string name="videos_empty">Әзірге бейне жүктелмеген. Телефоннан жіберу үшін заставка бетіндегі кодты сканерлеңіз.</string>
     <string name="wp_photos_rotate">Күніне біреуі</string>
     <string name="wp_daily_note">Bing күн суреті, күн сайын жаңасына ауысады.</string>
     <string name="wp_photos_rotate_note">Күн сайын фотоларыңыздың басқасы.</string>
@@ -94,6 +91,17 @@
     <string name="ss_aerial">Аэрожиын</string>
     <string name="ss_photos">Фотолар</string>
     <string name="ss_clock">Сағат</string>
+    <string name="wp_studio_hint">Суретті басыңыз — ол басты экранға қойылады, видеоны басыңыз — ол сол жерде ойнайды. Қосымша жіберу үшін кодты сканерлеңіз.</string>
+    <string name="wp_studio_empty">Әзірге өз тұсқағазыңыз жоқ. Телефоннан сурет немесе видео жіберу үшін кодты сканерлеңіз.</string>
+    <string name="wp_studio_phone">Сурет пен видеоны тұсқағаз етіп жіберу үшін кодты сканерлеңіз. Телефон мен телевизор бір желіде болуы керек.</string>
+    <string name="wp_my_photos">Менің суреттерім</string>
+    <string name="wp_my_videos">Менің видеоларым</string>
+    <string name="up_title">Телевизорға жіберу</string>
+    <string name="up_body">Сол Wi-Fi желісіндегі телефонмен кодты сканерлеп, файл жіберіңіз. Сурет пен видео тұсқағаз болады; қалғаны осында сақталады, қосымшаны тізімнен орнатуға болады.</string>
+    <string name="up_empty">Әзірге ештеңе жіберілмеген. Телефоннан файл жіберу үшін кодты сканерлеңіз.</string>
+    <string name="up_phone_title">Файлдарды телевизорға жіберу</string>
+    <string name="up_phone_body">Сурет, видео және файлдарды телевизорға жіберу үшін кодты сканерлеңіз. Телефон мен телевизор бір желіде болуы керек.</string>
+    <string name="up_install">Орнату</string>
     <string name="wp_phone_title">Телефоннан баптау</string>
     <string name="wp_phone_body">Фотоларды түсқағаз ретінде жіберу, қолданба белгішелерін өзгерту және ауа райына арналған қаланы телефоннан орнату үшін кодты сканерлеңіз. Телефон мен теледидар бір желіде болуы керек.</string>
     <string name="wp_phone_offline">Телефоннан баптау үшін теледидарды желіге қосыңыз.</string>

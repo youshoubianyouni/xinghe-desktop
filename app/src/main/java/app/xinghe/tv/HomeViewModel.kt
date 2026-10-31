@@ -49,8 +49,13 @@ sealed interface Overlay {
     data class Folder(val id: String) : Overlay
     data object HiddenApps : Overlay
     data object Wallpaper : Overlay
-    /** The owner's uploaded videos, as a folder under the wallpaper sheet: pick one, it stays. */
-    data object Videos : Overlay
+    /**
+     * Pictures and films of one's own, with the phone page to send more: what used to sit among
+     * the wallpapers in Personalize, given a sheet of its own because it grows with every upload.
+     */
+    data object Studio : Overlay
+    /** Files sent from a phone: the address to open and the code to scan. */
+    data object Upload : Overlay
     data class Pin(val mode: PinMode, val onDone: () -> Unit) : Overlay
     /** The week's weather, opened from the clock: the forecast for the place it shows. */
     data object Weather : Overlay

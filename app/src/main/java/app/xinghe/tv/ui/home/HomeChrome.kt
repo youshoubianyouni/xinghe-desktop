@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -639,5 +641,33 @@ fun StatusPill(
             }
             GlyphIcon(Glyph.Switches, fg, 17.dp)
         }
+    }
+}
+
+/**
+ * One round button beside the pill: the same 34 dp glass capsule with a single glyph in it, so
+ * wallpapers and uploads sit one press from Home without opening anything first. Focused it turns
+ * white, as the pill does; the glyph alone says what it is, as on the pill beside it.
+ */
+@Composable
+fun StatusIcon(
+    glyph: Glyph,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Pressable(onClick = onClick, enabled = enabled, focusedScale = 1.08f, modifier = modifier) { state ->
+        val bg by animateColorAsState(
+            if (state.focused) Palette.Focus else Color.Transparent,
+            tween(160, easing = Motion.EaseOut), label = "status-icon-bg",
+        )
+        val fg = if (state.focused) Palette.OnFocus else Color.White.copy(alpha = 0.9f)
+        Box(
+            Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(bg),
+            contentAlignment = Alignment.Center,
+        ) { GlyphIcon(glyph, fg, 17.dp) }
     }
 }

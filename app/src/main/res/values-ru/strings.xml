@@ -81,9 +81,6 @@
     <string name="wp_live">Аэросъёмка · запускается через 10 секунд на главном экране</string>
     <string name="wp_video_title">Видеообои</string>
     <string name="wp_video">Загруженные видео играют за главным экраном, в том числе в режиме всех приложений. Нажмите OK, чтобы открыть папку и выбрать одно: оно играет дальше само, без смены.</string>
-    <string name="videos_title">Видеообои</string>
-    <string name="videos_hint">Выберите одно видео для обоев: оно играет дальше само, без смены.</string>
-    <string name="videos_empty">Видео ещё не загружены. Отсканируйте код на странице заставки, чтобы отправить его с телефона.</string>
     <string name="wp_photos_rotate">Одно в день</string>
     <string name="wp_daily_note">Фото дня от Bing, каждый день новое.</string>
     <string name="wp_photos_rotate_note">Каждый день другое из ваших фото.</string>
@@ -94,6 +91,17 @@
     <string name="ss_aerial">Аэросъёмка</string>
     <string name="ss_photos">Фото</string>
     <string name="ss_clock">Часы</string>
+    <string name="wp_studio_hint">Нажмите на фото, чтобы поставить его за главный экран, на видео — чтобы оно там играло. Отсканируйте код, чтобы отправить ещё с телефона.</string>
+    <string name="wp_studio_empty">Своих обоев пока нет. Отсканируйте код, чтобы отправить фото или видео с телефона.</string>
+    <string name="wp_studio_phone">Отсканируйте код, чтобы отправлять фото и видео как обои. Телефон и телевизор должны быть в одной сети.</string>
+    <string name="wp_my_photos">Мои фото</string>
+    <string name="wp_my_videos">Мои видео</string>
+    <string name="up_title">Отправить на телевизор</string>
+    <string name="up_body">Отсканируйте код телефоном в той же сети Wi-Fi и отправляйте файлы. Фото и видео становятся обоями; остальное хранится здесь, а приложение устанавливается из этого списка.</string>
+    <string name="up_empty">Пока ничего не отправлено. Отсканируйте код, чтобы отправить файлы с телефона.</string>
+    <string name="up_phone_title">Отправить файлы на телевизор</string>
+    <string name="up_phone_body">Отсканируйте код, чтобы отправить фото, видео и файлы на телевизор. Телефон и телевизор должны быть в одной сети.</string>
+    <string name="up_install">Установить</string>
     <string name="wp_phone_title">Настройка с телефона</string>
     <string name="wp_phone_body">Отсканируйте код, чтобы отправлять фото как обои, менять значки приложений и выбирать город для погоды с телефона. Телефон и телевизор должны быть в одной сети.</string>
     <string name="wp_phone_offline">Подключите телевизор к сети, чтобы настроить его с телефона.</string>

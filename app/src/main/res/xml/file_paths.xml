@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What FileProvider may hand out: the app's own files folder, where uploads from a phone are
+     kept. The installer reads an APK through this, and nothing else of the folder leaves. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="uploads" path="uploads/" />
+</paths>

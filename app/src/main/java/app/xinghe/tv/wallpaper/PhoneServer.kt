@@ -82,6 +82,11 @@ class PhoneServer private constructor(private val context: Context, private val 
                     json(state())
                 }
                 session.method == Method.POST && path == "/api/upload" -> upload(session)
+                session.method == Method.POST && path == "/api/files" -> receive(session)
+                session.method == Method.POST && path == "/api/files/delete" -> {
+                    Uploads.delete(context, form(session)["id"].orEmpty())
+                    json(state())
+                }
                 session.method == Method.POST && path == "/api/videos/upload" -> video(session)
                 session.method == Method.POST && path == "/api/videos/delete" -> {
                     val removed = ScreensaverVideos.delete(context, form(session)["id"].orEmpty())
@@ -174,6 +179,11 @@ class PhoneServer private constructor(private val context: Context, private val 
             .put("screensaverFollows", Wallpapers.screensaverFollows)
             .put("videos", JSONArray().apply {
                 ScreensaverVideos.all(context).forEach { put(JSONObject().put("id", it.id).put("name", it.name)) }
+            })
+            .put("files", JSONArray().apply {
+                Uploads.all(context).forEach {
+                    put(JSONObject().put("id", it.id).put("name", it.name).put("size", it.size).put("apk", it.apk))
+                }
             })
             .put("focusStyle", AerialSettings.focusStyle.key)
             .put("wallpapers", list)
@@ -319,6 +329,44 @@ class PhoneServer private constructor(private val context: Context, private val 
         return json(state().put("added", added))
     }
 
+    /**
+     * Anything a phone sends, whatever it is: a picture becomes a wallpaper, a film a video
+     * wallpaper, everything else is kept as it arrived and listed on the TV. One file at a time,
+     * so a batch never needs twice its size free.
+     */
+    private fun receive(session: IHTTPSession): Response {
+        if (tooLarge(session)) return text(Response.Status.BAD_REQUEST, "too large")
+        val parts = HashMap<String, String>()
+        session.parseBody(parts)
+        val field = parts.keys.firstOrNull() ?: return text(Response.Status.BAD_REQUEST, "no file")
+        val source = File(parts[field] ?: return text(Response.Status.BAD_REQUEST, "no file"))
+        val name = session.parameters[field]?.firstOrNull()?.takeIf { it.isNotBlank() }
+            ?: field.substringBeforeLast('.').ifEmpty { "file" }
+        if (!source.exists() || source.length() == 0L) return json(state().put("saved", false))
+        val ext = name.substringAfterLast('.', "").lowercase()
+        val kind = when (ext) {
+            in PICTURE_EXTS -> "photo"
+            in FILM_EXTS -> "video"
+            else -> "file"
+        }
+        val saved = when (kind) {
+            "photo" -> runBlocking(Dispatchers.Main) { Wallpapers.addPhoto(source.inputStream()) } != null
+            "video" -> {
+                val v = ScreensaverVideos.add(context, source, name, null)
+                if (v != null) {
+                    // As from the videos page: the list is rescanned before this answers, and the
+                    // picture it owes is taken over the moments after, off the film on the TV.
+                    Wallpapers.refreshVideosSync()
+                    if (!File(v.file.parentFile, "thumb.jpg").let { it.isFile && it.length() > 0L }) Wallpapers.requestFrames("upload")
+                }
+                v != null
+            }
+            else -> Uploads.add(context, source, name) != null
+        }
+        DiagLog.i("upload: $name, ${source.length() / 1024} KB, kind $kind, saved $saved")
+        return json(state().put("saved", saved).put("kind", kind))
+    }
+
     /** One film per request: a batch never needs twice its total size free on the TV. */
     private fun video(session: IHTTPSession): Response {
         val length = session.headers["content-length"]?.toLongOrNull() ?: 0L
@@ -374,6 +422,9 @@ class PhoneServer private constructor(private val context: Context, private val 
         private const val MAX_UPLOAD = 200L * 1024 * 1024
         /** As for an input's name: Home's caption has room for about this much. */
         private const val FOLDER_NAME_MAX = 24
+        /** What a phone may send, and where each kind goes by its ending. */
+        private val PICTURE_EXTS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp", "avif")
+        private val FILM_EXTS = setOf("mp4", "mov", "m4v", "mkv", "webm", "ts", "m2ts")
 
         @Volatile
         private var running: PhoneServer? = null

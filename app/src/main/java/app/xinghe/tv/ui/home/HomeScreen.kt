@@ -24,12 +24,14 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -72,11 +74,14 @@ import app.xinghe.tv.R
 import app.xinghe.tv.settings.AerialSettings
 import app.xinghe.tv.apps.AppEntry
 import app.xinghe.tv.ui.control.ControlCenter
-import app.xinghe.tv.ui.wallpaper.VideosSheet
+import app.xinghe.tv.ui.wallpaper.UploadSheet
 import app.xinghe.tv.ui.wallpaper.WallpaperSheet
+import app.xinghe.tv.ui.wallpaper.WallpaperStudioSheet
+import app.xinghe.tv.wallpaper.PhoneServer
 import app.xinghe.tv.wallpaper.ScreensaverMode
 import app.xinghe.tv.wallpaper.Wallpapers
 import app.xinghe.tv.ui.components.liquidGlass
+import app.xinghe.tv.ui.theme.Glyph
 import app.xinghe.tv.ui.theme.LocalReducedMotion
 import app.xinghe.tv.ui.theme.Motion
 import app.xinghe.tv.ui.theme.Type
@@ -202,6 +207,23 @@ fun HomeScreen(
     val pillRequester = remember { FocusRequester() }
     val appContext = LocalContext.current
     val firmwareInputPanel = remember { SystemProbe.tclInputPanel(appContext) != null }
+
+    // The phone page, for every sheet that sends from a phone: Personalize, wallpapers and
+    // uploads. It listens only while one of them is up, plus a few minutes so an upload already
+    // under way can finish.
+    val phoneWanted = overlay is Overlay.Wallpaper || overlay is Overlay.Studio || overlay is Overlay.Upload
+    var phoneUrl by remember { mutableStateOf<String?>(null) }
+    var phoneQr by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(phoneWanted) {
+        if (phoneWanted) {
+            val url = withContext(Dispatchers.IO) { PhoneServer.start(appContext) }
+            phoneUrl = url
+            phoneQr = url?.let { withContext(Dispatchers.Default) { PhoneServer.qr(it).asImageBitmap() } }
+        } else {
+            delay(5 * 60 * 1000L)
+            withContext(Dispatchers.IO) { PhoneServer.stop() }
+        }
+    }
 
     var focusedKey by remember { mutableStateOf<String?>(null) }
     // The all-apps view. It opens on Down from the top row, which keeps focus on that row — the
@@ -741,6 +763,24 @@ fun HomeScreen(
                     onWeather = openWeather,
                 )
             }
+            // Wallpapers and uploads, left of the pill: one press each, without opening anything
+            // first. They go with the pill, and with it they fade on the way into the screensaver.
+            val chromeAlpha = 1f - (toSaver.value * 2f).coerceIn(0f, 1f)
+            val chromeEnabled = gridEnabled && moving == null && !gridMode
+            StatusIcon(
+                Glyph.Upload,
+                enabled = chromeEnabled,
+                onClick = { vm.overlay = Overlay.Upload },
+                modifier = Modifier.graphicsLayer { alpha = chromeAlpha },
+            )
+            Spacer(Modifier.width(8.dp))
+            StatusIcon(
+                Glyph.Wallpaper,
+                enabled = chromeEnabled,
+                onClick = { vm.overlay = Overlay.Studio },
+                modifier = Modifier.graphicsLayer { alpha = chromeAlpha },
+            )
+            Spacer(Modifier.width(8.dp))
             StatusPill(
                 now = now,
                 network = vm.network,
@@ -884,6 +924,8 @@ fun HomeScreen(
             visible = overlay is Overlay.Wallpaper,
             onDismiss = { vm.overlay = Overlay.ControlCenter() },
             hiddenCount = vm.hiddenApps.size,
+            phoneUrl = phoneUrl,
+            phoneQr = phoneQr,
             onHiddenApps = { vm.whenUnlocked { vm.overlay = Overlay.HiddenApps } },
             onStartScreensaver = {
                 vm.overlay = Overlay.None
@@ -893,13 +935,23 @@ fun HomeScreen(
                 if (on) vm.overlay = Overlay.Pin(PinMode.Create) { vm.overlay = Overlay.Wallpaper }
                 else vm.whenUnlocked { AerialSettings.choosePin(null); vm.overlay = Overlay.Wallpaper }
             },
-            onOpenVideos = { vm.overlay = Overlay.Videos },
         )
 
-        // The uploaded videos, a folder out of the wallpaper sheet; Back returns there.
-        VideosSheet(
-            visible = overlay is Overlay.Videos,
-            onDismiss = { vm.overlay = Overlay.Wallpaper },
+        // Pictures and films of one's own: press one and it is the wallpaper. The code beside
+        // them sends more from a phone.
+        WallpaperStudioSheet(
+            visible = overlay is Overlay.Studio,
+            phoneUrl = phoneUrl,
+            phoneQr = phoneQr,
+            onDismiss = { vm.overlay = Overlay.None },
+        )
+
+        // Files from a phone: the code to scan, then what has come in.
+        UploadSheet(
+            visible = overlay is Overlay.Upload,
+            phoneUrl = phoneUrl,
+            phoneQr = phoneQr,
+            onDismiss = { vm.overlay = Overlay.None },
         )
 
         // The week's weather, out of the clock.

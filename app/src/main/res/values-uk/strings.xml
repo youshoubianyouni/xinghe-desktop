@@ -81,9 +81,6 @@
     <string name="wp_live">Аерозйомка · запускається через 10 секунд на головному екрані</string>
     <string name="wp_video_title">Відеошпалери</string>
     <string name="wp_video">Завантажені відео відтворюються за головним екраном, зокрема в режимі всіх застосунків. Натисніть OK, щоб відкрити папку та вибрати одне: воно грає далі саме, без зміни.</string>
-    <string name="videos_title">Відеошпалери</string>
-    <string name="videos_hint">Виберіть одне відео для шпалер: воно грає далі саме, без зміни.</string>
-    <string name="videos_empty">Відео ще не завантажені. Відскануйте код на сторінці заставки, щоб надіслати його з телефона.</string>
     <string name="wp_photos_rotate">Одне на день</string>
     <string name="wp_daily_note">Фото дня від Bing, щодня нове.</string>
     <string name="wp_photos_rotate_note">Щодня інше з ваших фото.</string>
@@ -94,6 +91,17 @@
     <string name="ss_aerial">Аерозйомка</string>
     <string name="ss_photos">Фото</string>
     <string name="ss_clock">Годинник</string>
+    <string name="wp_studio_hint">Натисніть на фото, щоб поставити його за головний екран, на відео — щоб воно там грало. Відскануйте код, щоб надіслати ще з телефона.</string>
+    <string name="wp_studio_empty">Своїх шпалер ще немає. Відскануйте код, щоб надіслати фото або відео з телефона.</string>
+    <string name="wp_studio_phone">Відскануйте код, щоб надсилати фото та відео як шпалери. Телефон і телевізор мають бути в одній мережі.</string>
+    <string name="wp_my_photos">Мої фото</string>
+    <string name="wp_my_videos">Мої відео</string>
+    <string name="up_title">Надіслати на телевізор</string>
+    <string name="up_body">Відскануйте код телефоном у тій самій мережі Wi-Fi і надсилайте файли. Фото та відео стають шпалерами; решта зберігається тут, а застосунок установлюється з цього списку.</string>
+    <string name="up_empty">Поки нічого не надіслано. Відскануйте код, щоб надіслати файли з телефона.</string>
+    <string name="up_phone_title">Надіслати файли на телевізор</string>
+    <string name="up_phone_body">Відскануйте код, щоб надіслати фото, відео та файли на телевізор. Телефон і телевізор мають бути в одній мережі.</string>
+    <string name="up_install">Установити</string>
     <string name="wp_phone_title">Налаштування з телефона</string>
     <string name="wp_phone_body">Відскануйте код, щоб надсилати фото як шпалери, змінювати значки застосунків і вибирати місто для погоди з телефона. Телефон і телевізор мають бути в одній мережі.</string>
     <string name="wp_phone_offline">Підключіть телевізор до мережі, щоб налаштувати його з телефона.</string>
