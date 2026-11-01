@@ -963,16 +963,18 @@ fun HomeScreen(
         )
 
         // The flow of traffic, at the screen's edge: on while the setting in Control Center says
-        // so, in whichever corner that setting picked. Top corners sit below the clock, bottom
-        // corners above the shelf of apps.
+        // so, in whichever corner that setting picked, hugging the true corner of the screen on
+        // every set — the bottom corners only a step from the very edge, over whatever is there.
+        // The top corners sit below the clock row, which Home draws itself, so that much room is
+        // the same on every set.
         if (trafficOn) {
             val speed by TrafficMonitor.speed.collectAsState()
             val corner by TrafficMonitor.corner.collectAsState()
             val (cornerAlign, cornerPad) = when (corner) {
-                TrafficMonitor.Corner.TopStart -> Alignment.TopStart to PaddingValues(top = 84.dp, start = 28.dp)
-                TrafficMonitor.Corner.TopEnd -> Alignment.TopEnd to PaddingValues(top = 84.dp, end = 28.dp)
-                TrafficMonitor.Corner.BottomStart -> Alignment.BottomStart to PaddingValues(bottom = 84.dp, start = 28.dp)
-                TrafficMonitor.Corner.BottomEnd -> Alignment.BottomEnd to PaddingValues(bottom = 84.dp, end = 28.dp)
+                TrafficMonitor.Corner.TopStart -> Alignment.TopStart to PaddingValues(top = 84.dp, start = 16.dp)
+                TrafficMonitor.Corner.TopEnd -> Alignment.TopEnd to PaddingValues(top = 84.dp, end = 16.dp)
+                TrafficMonitor.Corner.BottomStart -> Alignment.BottomStart to PaddingValues(bottom = 16.dp, start = 16.dp)
+                TrafficMonitor.Corner.BottomEnd -> Alignment.BottomEnd to PaddingValues(bottom = 16.dp, end = 16.dp)
             }
             BasicText(
                 "↑ ${TrafficMonitor.rate(speed.tx)}  ↓ ${TrafficMonitor.rate(speed.rx)}",
