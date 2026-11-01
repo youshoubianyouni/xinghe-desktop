@@ -14,6 +14,14 @@
     <string name="cc_traffic">Трафик</string>
     <string name="cc_traffic_state_on">қосулы</string>
     <string name="cc_traffic_state_off">өшірулі</string>
+    <string name="cc_traffic_where">Экрандағы орны</string>
+    <string name="cc_traffic_pos_tl">Үстіңде сол жақта</string>
+    <string name="cc_traffic_pos_tr">Үстіңде оң жақта</string>
+    <string name="cc_traffic_pos_bl">Астыңғы сол жақта</string>
+    <string name="cc_traffic_pos_br">Астыңғы оң жақта</string>
+    <string name="cc_traffic_source">Дереккөз</string>
+    <string name="cc_traffic_source_root">Root</string>
+    <string name="cc_traffic_source_system">Жүйелік</string>
     <string name="cc_home_default">Xinghe — сіздің басты экраныңыз</string>
     <string name="cc_home_guarded">Home Guard қосулы</string>
     <string name="cc_home_not_default">Әдепкі басты экран емес</string>

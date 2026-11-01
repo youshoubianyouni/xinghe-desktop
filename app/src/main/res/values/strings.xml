@@ -17,6 +17,14 @@
     <string name="cc_traffic">Traffic</string>
     <string name="cc_traffic_state_on">on</string>
     <string name="cc_traffic_state_off">off</string>
+    <string name="cc_traffic_where">Position on screen</string>
+    <string name="cc_traffic_pos_tl">Top left</string>
+    <string name="cc_traffic_pos_tr">Top right</string>
+    <string name="cc_traffic_pos_bl">Bottom left</string>
+    <string name="cc_traffic_pos_br">Bottom right</string>
+    <string name="cc_traffic_source">Source</string>
+    <string name="cc_traffic_source_root">Root</string>
+    <string name="cc_traffic_source_system">System</string>
     <string name="cc_home_default">Xinghe is your home screen</string>
     <string name="cc_home_guarded">Home Guard is on</string>
     <string name="cc_home_not_default">Not the default home screen</string>

@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
@@ -962,9 +963,17 @@ fun HomeScreen(
         )
 
         // The flow of traffic, at the screen's edge: on while the setting in Control Center says
-        // so, read once a second and told the way TVBoxNetGuard told it, without the word after.
+        // so, in whichever corner that setting picked. Top corners sit below the clock, bottom
+        // corners above the shelf of apps.
         if (trafficOn) {
             val speed by TrafficMonitor.speed.collectAsState()
+            val corner by TrafficMonitor.corner.collectAsState()
+            val (cornerAlign, cornerPad) = when (corner) {
+                TrafficMonitor.Corner.TopStart -> Alignment.TopStart to PaddingValues(top = 84.dp, start = 28.dp)
+                TrafficMonitor.Corner.TopEnd -> Alignment.TopEnd to PaddingValues(top = 84.dp, end = 28.dp)
+                TrafficMonitor.Corner.BottomStart -> Alignment.BottomStart to PaddingValues(bottom = 84.dp, start = 28.dp)
+                TrafficMonitor.Corner.BottomEnd -> Alignment.BottomEnd to PaddingValues(bottom = 84.dp, end = 28.dp)
+            }
             BasicText(
                 "↑ ${TrafficMonitor.rate(speed.tx)}  ↓ ${TrafficMonitor.rate(speed.rx)}",
                 style = Type.Body.copy(
@@ -972,7 +981,7 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     shadow = Shadow(Color(0xCC000000.toInt()), blurRadius = 8f),
                 ),
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 28.dp),
+                modifier = Modifier.align(cornerAlign).padding(cornerPad),
             )
         }
 

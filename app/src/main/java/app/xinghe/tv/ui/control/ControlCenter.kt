@@ -112,14 +112,15 @@ fun ControlCenter(
     onOpen: (android.content.Intent) -> Unit,
     onClose: () -> Unit,
 ) {
-    BackHandler(enabled = visible) {
-        when (page) {
-            CcPage.Main -> onClose()
-            CcPage.Inputs -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
-            CcPage.InputSettings -> vm.overlay = Overlay.ControlCenter(CcPage.Inputs)
-            CcPage.Setup -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+        BackHandler(enabled = visible) {
+            when (page) {
+                CcPage.Main -> onClose()
+                CcPage.Inputs -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+                CcPage.InputSettings -> vm.overlay = Overlay.ControlCenter(CcPage.Inputs)
+                CcPage.Setup -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+                CcPage.Traffic -> vm.overlay = Overlay.ControlCenter(CcPage.Main)
+            }
         }
-    }
 
     AnimatedVisibility(
         visible = visible,
@@ -164,6 +165,7 @@ fun ControlCenter(
                         CcPage.Inputs -> InputsPage(vm, visible, onOpen)
                         CcPage.InputSettings -> InputSettingsPage(vm, visible)
                         CcPage.Setup -> SetupPage(vm, visible, onOpen)
+                        CcPage.Traffic -> TrafficPage(vm, visible)
                     }
                 }
             }
@@ -231,14 +233,16 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
         BrightnessRow(vm)
 
         Spacer(Modifier.height(8.dp))
-        // The flow of traffic, read at the screen's edge while it is wanted. A switch, not a
-        // page: the reading is either on the wall beside the clock or it is not.
+        // The flow of traffic, read at the screen's edge. The row opens its page: the switch
+        // lives there, and where on the screen the reading sits, and where its numbers come from.
         val trafficOn by TrafficMonitor.on.collectAsState()
+        val trafficCorner by TrafficMonitor.corner.collectAsState()
         MenuRow(
             Glyph.Monitoring,
             stringResource(R.string.cc_traffic),
-            onClick = { TrafficMonitor.setOn(context, !trafficOn) },
-            trailing = stringResource(if (trafficOn) R.string.cc_traffic_state_on else R.string.cc_traffic_state_off),
+            onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Traffic) },
+            trailing = (if (trafficOn) stringResource(R.string.cc_traffic_state_on) else stringResource(R.string.cc_traffic_state_off)) +
+                (if (trafficOn) " · " + stringResource(trafficCornerName(trafficCorner)) else "") + " ›",
         )
         // How Home looks (wallpaper, screensaver, focus style, hidden apps, weather) lives in one place.
         MenuRow(
@@ -272,6 +276,60 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
             BasicText(text, style = Type.Caption, modifier = Modifier.weight(1f))
             BasicText(stringResource(R.string.app_name) + " " + BuildConfig.VERSION_NAME, style = Type.Caption.copy(color = Palette.TertiaryLabel), modifier = Modifier.padding(end = 14.dp))
         }
+    }
+}
+
+/** The string that names a corner of the screen, as the traffic page's picker reads them. */
+private fun trafficCornerName(c: TrafficMonitor.Corner): Int = when (c) {
+    TrafficMonitor.Corner.TopStart -> R.string.cc_traffic_pos_tl
+    TrafficMonitor.Corner.TopEnd -> R.string.cc_traffic_pos_tr
+    TrafficMonitor.Corner.BottomStart -> R.string.cc_traffic_pos_bl
+    TrafficMonitor.Corner.BottomEnd -> R.string.cc_traffic_pos_br
+}
+
+/**
+ * The traffic page: the switch, and the corner of the screen the reading sits in, and a word on
+ * where its totals come from — root when the TV has it, the system's own counters otherwise.
+ */
+@Composable
+private fun TrafficPage(vm: HomeViewModel, takeFocus: Boolean) {
+    val context = LocalContext.current
+    val first = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        if (!takeFocus) return@LaunchedEffect
+        withFrameNanos { }
+        runCatching { first.requestFocus() }
+    }
+    val on by TrafficMonitor.on.collectAsState()
+    val corner by TrafficMonitor.corner.collectAsState()
+    val source by TrafficMonitor.source.collectAsState()
+    Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState())) {
+        MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_traffic), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })
+        Spacer(Modifier.height(8.dp))
+        MenuRow(
+            Glyph.Monitoring,
+            stringResource(R.string.cc_traffic),
+            focusRequester = first,
+            onClick = { TrafficMonitor.setOn(context, !on) },
+            trailing = stringResource(if (on) R.string.cc_traffic_state_on else R.string.cc_traffic_state_off),
+        )
+        Spacer(Modifier.height(14.dp))
+        BasicText(stringResource(R.string.cc_traffic_where), style = Type.Callout, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp))
+        TrafficMonitor.corners.forEach { c ->
+            ChoiceRow(
+                text = stringResource(trafficCornerName(c)),
+                selected = c == corner,
+                focusRequester = null,
+                onClick = { TrafficMonitor.setCorner(context, c) },
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        BasicText(
+            stringResource(R.string.cc_traffic_source) + " · " +
+                stringResource(if (source == TrafficMonitor.Source.Root) R.string.cc_traffic_source_root else R.string.cc_traffic_source_system),
+            style = Type.Caption,
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp),
+        )
     }
 }
 

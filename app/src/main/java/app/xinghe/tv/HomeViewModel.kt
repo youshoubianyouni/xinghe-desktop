@@ -59,7 +59,7 @@ sealed interface Overlay {
     data object Weather : Overlay
 }
 
-enum class CcPage { Main, Inputs, InputSettings, Setup }
+enum class CcPage { Main, Inputs, InputSettings, Setup, Traffic }
 
 /** Time since boot at which the app list is looked at again; see HomeViewModel.catchUpAfterBoot. */
 private val BOOT_CATCH_UP_MS = listOf(60_000L, 180_000L)
