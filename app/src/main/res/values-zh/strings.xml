@@ -24,6 +24,7 @@
     <string name="cc_traffic_source">数据源</string>
     <string name="cc_traffic_source_root">Root</string>
     <string name="cc_traffic_source_system">系统级</string>
+    <string name="cc_traffic_overlay_hint">悬浮窗会显示在任意应用上。若未出现，请到系统设置允许本应用“显示在其他应用上层”。</string>
     <string name="cc_home_default">星河桌面 是默认桌面</string>
     <string name="cc_home_guarded">桌面守护已开启</string>
     <string name="cc_home_not_default">尚未设为默认桌面</string>

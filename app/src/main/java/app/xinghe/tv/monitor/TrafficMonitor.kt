@@ -67,12 +67,17 @@ object TrafficMonitor {
         }.getOrDefault(Corner.TopEnd)
     }
 
-    /** Sets the switch, and starts or stops the sampler to match. */
+    /** Sets the switch, and starts or stops the sampler and the floating window to match. */
     fun setOn(context: Context, value: Boolean) {
         context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .edit().putBoolean("traffic_monitor", value).apply()
         _on.value = value
-        if (value) start(context)
+        if (value) {
+            start(context)
+            TrafficFloatService.start(context)
+        } else {
+            TrafficFloatService.stop(context)
+        }
     }
 
     /** Sets the corner the reading sits in, and remembers it. */

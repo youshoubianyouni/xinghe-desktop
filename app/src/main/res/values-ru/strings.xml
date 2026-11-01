@@ -22,6 +22,7 @@
     <string name="cc_traffic_source">Источник</string>
     <string name="cc_traffic_source_root">Root</string>
     <string name="cc_traffic_source_system">Системный</string>
+    <string name="cc_traffic_overlay_hint">Показывается поверх любых приложений. Если окно не появилось, разрешите приложению «поверх других окон» в настройках системы.</string>
     <string name="cc_home_default">Xinghe — ваш главный экран</string>
     <string name="cc_home_guarded">Home Guard включён</string>
     <string name="cc_home_not_default">Не главный экран по умолчанию</string>

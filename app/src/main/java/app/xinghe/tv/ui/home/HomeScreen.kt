@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
@@ -81,6 +80,7 @@ import app.xinghe.tv.apps.AppEntry
 import app.xinghe.tv.ui.control.ControlCenter
 import app.xinghe.tv.ui.wallpaper.WallpaperSheet
 import app.xinghe.tv.ui.wallpaper.WallpaperStudioSheet
+import app.xinghe.tv.monitor.TrafficFloatService
 import app.xinghe.tv.monitor.TrafficMonitor
 import app.xinghe.tv.wallpaper.PhoneServer
 import app.xinghe.tv.wallpaper.ScreensaverMode
@@ -216,9 +216,12 @@ fun HomeScreen(
     // The phone page, for every sheet that sends from a phone: Personalize, wallpapers and
     // uploads. It listens only while one of them is up, plus a few minutes so an upload already
     // under way can finish.
-    // The traffic reading, if the switch in Control Center asks for it.
-    val trafficOn by TrafficMonitor.on.collectAsState()
-    LaunchedEffect(Unit) { TrafficMonitor.start(appContext) }
+    // The traffic reading, if the switch in Control Center asks for it; the floating window
+    // service takes it from there when the switch was left on.
+    LaunchedEffect(Unit) {
+        TrafficMonitor.start(appContext)
+        if (TrafficMonitor.on.value) TrafficFloatService.start(appContext)
+    }
 
     val phoneWanted = overlay is Overlay.Wallpaper || overlay is Overlay.Studio
     var phoneUrl by remember { mutableStateOf<String?>(null) }
@@ -962,31 +965,9 @@ fun HomeScreen(
             onCancel = { vm.overlay = Overlay.None },
         )
 
-        // The flow of traffic, at the screen's edge: on while the setting in Control Center says
-        // so, in whichever corner that setting picked, hugging the true corner of the screen on
-        // every set — the bottom corners only a step from the very edge, over whatever is there.
-        // The top corners sit below the clock row, which Home draws itself, so that much room is
-        // the same on every set.
-        if (trafficOn) {
-            val speed by TrafficMonitor.speed.collectAsState()
-            val corner by TrafficMonitor.corner.collectAsState()
-            val (cornerAlign, cornerPad) = when (corner) {
-                TrafficMonitor.Corner.TopStart -> Alignment.TopStart to PaddingValues(top = 84.dp, start = 16.dp)
-                TrafficMonitor.Corner.TopEnd -> Alignment.TopEnd to PaddingValues(top = 84.dp, end = 16.dp)
-                TrafficMonitor.Corner.BottomStart -> Alignment.BottomStart to PaddingValues(bottom = 16.dp, start = 16.dp)
-                TrafficMonitor.Corner.BottomEnd -> Alignment.BottomEnd to PaddingValues(bottom = 16.dp, end = 16.dp)
-            }
-            BasicText(
-                "↑ ${TrafficMonitor.rate(speed.tx)}  ↓ ${TrafficMonitor.rate(speed.rx)}",
-                style = Type.Body.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    shadow = Shadow(Color(0xCC000000.toInt()), blurRadius = 8f),
-                ),
-                modifier = Modifier.align(cornerAlign).padding(cornerPad),
-            )
-        }
-
+        // The flow of traffic, watched by the floating window service, which carries the reading
+        // over every app the TV shows, in the corner Control Center picked. Home itself draws
+        // nothing: one window, from the system, is enough.
         NoticeBanner(vm.notice, Modifier.align(Alignment.TopCenter).padding(top = 24.dp))
 
         Screensaver(visible = vm.screensaverVisible, apps = apps, now = now, skips = vm.screensaverSkips, carry = when {

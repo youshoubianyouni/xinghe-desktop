@@ -22,6 +22,7 @@
     <string name="cc_traffic_source">Дереккөз</string>
     <string name="cc_traffic_source_root">Root</string>
     <string name="cc_traffic_source_system">Жүйелік</string>
+    <string name="cc_traffic_overlay_hint">Кез келген қосымшаның үстінде көрінеді. Терезе пайда болмаса, жүйе баптауларында бұл қосымшаға «басқа терезелердің үстінде көрсету» рұқсатын беріңіз.</string>
     <string name="cc_home_default">Xinghe — сіздің басты экраныңыз</string>
     <string name="cc_home_guarded">Home Guard қосулы</string>
     <string name="cc_home_not_default">Әдепкі басты экран емес</string>

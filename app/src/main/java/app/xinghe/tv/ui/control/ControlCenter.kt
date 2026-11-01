@@ -76,6 +76,7 @@ import app.xinghe.tv.HomeViewModel
 import app.xinghe.tv.Overlay
 import app.xinghe.tv.R
 import app.xinghe.tv.apps.SourceLooks
+import app.xinghe.tv.monitor.TrafficFloatService
 import app.xinghe.tv.monitor.TrafficMonitor
 import app.xinghe.tv.settings.AerialSettings
 import app.xinghe.tv.system.HomeStatus
@@ -310,7 +311,13 @@ private fun TrafficPage(vm: HomeViewModel, takeFocus: Boolean) {
             Glyph.Monitoring,
             stringResource(R.string.cc_traffic),
             focusRequester = first,
-            onClick = { TrafficMonitor.setOn(context, !on) },
+            onClick = {
+                // The reading goes over every app by a floating window; where the firmware has
+                // not yet said yes to that, its settings page is opened alongside — once, since
+                // the check is only a hint on some boxes and the window is tried regardless.
+                if (!on && !TrafficFloatService.canShow(context)) TrafficFloatService.openOverlaySettings(context)
+                TrafficMonitor.setOn(context, !on)
+            },
             trailing = stringResource(if (on) R.string.cc_traffic_state_on else R.string.cc_traffic_state_off),
         )
         Spacer(Modifier.height(14.dp))
@@ -327,6 +334,12 @@ private fun TrafficPage(vm: HomeViewModel, takeFocus: Boolean) {
         BasicText(
             stringResource(R.string.cc_traffic_source) + " · " +
                 stringResource(if (source == TrafficMonitor.Source.Root) R.string.cc_traffic_source_root else R.string.cc_traffic_source_system),
+            style = Type.Caption,
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp),
+        )
+        Spacer(Modifier.height(8.dp))
+        BasicText(
+            stringResource(R.string.cc_traffic_overlay_hint),
             style = Type.Caption,
             modifier = Modifier.padding(start = 14.dp, end = 14.dp),
         )
