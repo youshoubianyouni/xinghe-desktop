@@ -14,7 +14,10 @@
     <string name="cc_settings">Settings</string>
     <string name="cc_volume">Volume</string>
     <string name="cc_muted">Muted</string>
-    <string name="cc_home_default">Aerial is your home screen</string>
+    <string name="cc_traffic">Traffic</string>
+    <string name="cc_traffic_state_on">on</string>
+    <string name="cc_traffic_state_off">off</string>
+    <string name="cc_home_default">Xinghe is your home screen</string>
     <string name="cc_home_guarded">Home Guard is on</string>
     <string name="cc_home_not_default">Not the default home screen</string>
     <string name="cc_setup_title">Make Aerial Your Home Screen</string>

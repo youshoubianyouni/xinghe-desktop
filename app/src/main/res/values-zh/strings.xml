@@ -13,7 +13,10 @@
     <string name="cc_settings">设置</string>
     <string name="cc_volume">音量</string>
     <string name="cc_muted">已静音</string>
-    <string name="cc_home_default">Aerial 是默认桌面</string>
+    <string name="cc_traffic">流量监控</string>
+    <string name="cc_traffic_state_on">开</string>
+    <string name="cc_traffic_state_off">关</string>
+    <string name="cc_home_default">星河桌面 是默认桌面</string>
     <string name="cc_home_guarded">桌面守护已开启</string>
     <string name="cc_home_not_default">尚未设为默认桌面</string>
     <string name="cc_setup_title">设为主屏幕</string>

@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -50,7 +51,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -63,6 +66,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -76,6 +80,7 @@ import app.xinghe.tv.apps.AppEntry
 import app.xinghe.tv.ui.control.ControlCenter
 import app.xinghe.tv.ui.wallpaper.WallpaperSheet
 import app.xinghe.tv.ui.wallpaper.WallpaperStudioSheet
+import app.xinghe.tv.monitor.TrafficMonitor
 import app.xinghe.tv.wallpaper.PhoneServer
 import app.xinghe.tv.wallpaper.ScreensaverMode
 import app.xinghe.tv.wallpaper.Wallpapers
@@ -210,6 +215,10 @@ fun HomeScreen(
     // The phone page, for every sheet that sends from a phone: Personalize, wallpapers and
     // uploads. It listens only while one of them is up, plus a few minutes so an upload already
     // under way can finish.
+    // The traffic reading, if the switch in Control Center asks for it.
+    val trafficOn by TrafficMonitor.on.collectAsState()
+    LaunchedEffect(Unit) { TrafficMonitor.start(appContext) }
+
     val phoneWanted = overlay is Overlay.Wallpaper || overlay is Overlay.Studio
     var phoneUrl by remember { mutableStateOf<String?>(null) }
     var phoneQr by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -951,6 +960,21 @@ fun HomeScreen(
             onDone = { pin?.onDone?.invoke() },
             onCancel = { vm.overlay = Overlay.None },
         )
+
+        // The flow of traffic, at the screen's edge: on while the setting in Control Center says
+        // so, read once a second and told the way TVBoxNetGuard told it, without the word after.
+        if (trafficOn) {
+            val speed by TrafficMonitor.speed.collectAsState()
+            BasicText(
+                "↑ ${TrafficMonitor.rate(speed.tx)}  ↓ ${TrafficMonitor.rate(speed.rx)}",
+                style = Type.Body.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    shadow = Shadow(Color(0xCC000000.toInt()), blurRadius = 8f),
+                ),
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 28.dp),
+            )
+        }
 
         NoticeBanner(vm.notice, Modifier.align(Alignment.TopCenter).padding(top = 24.dp))
 

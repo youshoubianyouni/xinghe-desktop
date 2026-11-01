@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -75,6 +76,7 @@ import app.xinghe.tv.HomeViewModel
 import app.xinghe.tv.Overlay
 import app.xinghe.tv.R
 import app.xinghe.tv.apps.SourceLooks
+import app.xinghe.tv.monitor.TrafficMonitor
 import app.xinghe.tv.settings.AerialSettings
 import app.xinghe.tv.system.HomeStatus
 import app.xinghe.tv.system.LaunchFallback
@@ -229,6 +231,15 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
         BrightnessRow(vm)
 
         Spacer(Modifier.height(8.dp))
+        // The flow of traffic, read at the screen's edge while it is wanted. A switch, not a
+        // page: the reading is either on the wall beside the clock or it is not.
+        val trafficOn by TrafficMonitor.on.collectAsState()
+        MenuRow(
+            Glyph.Monitoring,
+            stringResource(R.string.cc_traffic),
+            onClick = { TrafficMonitor.setOn(context, !trafficOn) },
+            trailing = stringResource(if (trafficOn) R.string.cc_traffic_state_on else R.string.cc_traffic_state_off),
+        )
         // How Home looks (wallpaper, screensaver, focus style, hidden apps, weather) lives in one place.
         MenuRow(
             Glyph.Photo,
@@ -259,7 +270,7 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
             Box(Modifier.size(7.dp).clip(CircleShape).background(dot))
             Spacer(Modifier.width(8.dp))
             BasicText(text, style = Type.Caption, modifier = Modifier.weight(1f))
-            BasicText("Aerial ${BuildConfig.VERSION_NAME}", style = Type.Caption.copy(color = Palette.TertiaryLabel), modifier = Modifier.padding(end = 14.dp))
+            BasicText(stringResource(R.string.app_name) + " " + BuildConfig.VERSION_NAME, style = Type.Caption.copy(color = Palette.TertiaryLabel), modifier = Modifier.padding(end = 14.dp))
         }
     }
 }

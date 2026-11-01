@@ -11,7 +11,10 @@
     <string name="cc_settings">Налаштування</string>
     <string name="cc_volume">Гучність</string>
     <string name="cc_muted">Звук вимкнено</string>
-    <string name="cc_home_default">Aerial — ваш головний екран</string>
+    <string name="cc_traffic">Трафік</string>
+    <string name="cc_traffic_state_on">увімк</string>
+    <string name="cc_traffic_state_off">вимк</string>
+    <string name="cc_home_default">Xinghe — ваш головний екран</string>
     <string name="cc_home_guarded">Home Guard увімкнено</string>
     <string name="cc_home_not_default">Не головний екран за замовчуванням</string>
     <string name="cc_setup_title">Зробіть Aerial головним екраном</string>

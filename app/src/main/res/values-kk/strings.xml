@@ -11,7 +11,10 @@
     <string name="cc_settings">Параметрлер</string>
     <string name="cc_volume">Дыбыс деңгейі</string>
     <string name="cc_muted">Дыбыс өшірулі</string>
-    <string name="cc_home_default">Aerial — сіздің басты экраныңыз</string>
+    <string name="cc_traffic">Трафик</string>
+    <string name="cc_traffic_state_on">қосулы</string>
+    <string name="cc_traffic_state_off">өшірулі</string>
+    <string name="cc_home_default">Xinghe — сіздің басты экраныңыз</string>
     <string name="cc_home_guarded">Home Guard қосулы</string>
     <string name="cc_home_not_default">Әдепкі басты экран емес</string>
     <string name="cc_setup_title">Aerial-ді басты экран жасаңыз</string>
