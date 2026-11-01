@@ -286,7 +286,7 @@ private fun SetupPage(vm: HomeViewModel, takeFocus: Boolean, onOpen: (android.co
     LaunchedEffect(Unit) {
         val ip = PhoneServer.lanAddress(context)
         val url = "https://aerial.qust.me/update/#setup=1&v=${BuildConfig.VERSION_NAME}&f=${BuildConfig.FLAVOR}" + (ip?.let { "&tv=$it" } ?: "")
-        qr = withContext(Dispatchers.Default) { PhoneServer.qr(url).asImageBitmap() }
+        qr = withContext(Dispatchers.Default) { PhoneServer.qr("$url#home").asImageBitmap() }
     }
     Column {
         MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_setup_title), focusRequester = first, onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })

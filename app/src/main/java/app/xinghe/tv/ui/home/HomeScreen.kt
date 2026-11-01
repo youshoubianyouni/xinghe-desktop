@@ -217,7 +217,7 @@ fun HomeScreen(
         if (phoneWanted) {
             val url = withContext(Dispatchers.IO) { PhoneServer.start(appContext) }
             phoneUrl = url
-            phoneQr = url?.let { withContext(Dispatchers.Default) { PhoneServer.qr(it).asImageBitmap() } }
+            phoneQr = url?.let { withContext(Dispatchers.Default) { PhoneServer.qr("$url#home").asImageBitmap() } }
         } else {
             delay(5 * 60 * 1000L)
             withContext(Dispatchers.IO) { PhoneServer.stop() }
@@ -767,7 +767,7 @@ fun HomeScreen(
             val chromeAlpha = 1f - (toSaver.value * 2f).coerceIn(0f, 1f)
             val chromeEnabled = gridEnabled && moving == null && !gridMode
             StatusIcon(
-                Glyph.Wallpaper,
+                Glyph.Upload,
                 enabled = chromeEnabled,
                 onClick = { vm.overlay = Overlay.Studio },
                 modifier = Modifier.graphicsLayer { alpha = chromeAlpha },

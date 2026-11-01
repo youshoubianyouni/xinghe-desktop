@@ -1187,7 +1187,7 @@ function appendSendGroups(root) {
     if (kind === 'files') {
       const up = el('label', 'btn add');
       up.innerHTML = `${ICON.plus}<span></span><input type="file" multiple hidden>`;
-      up.querySelector('span').textContent = sendingFiles ? t('sending_files') : t('files_upload');
+      up.querySelector('span').textContent = sendingFiles || t('files_upload');
       if (sendingFiles) up.setAttribute('disabled', '');
       up.querySelector('input').onchange = uploadFiles;
       root.appendChild(up);
