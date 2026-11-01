@@ -303,7 +303,6 @@ private fun TrafficPage(vm: HomeViewModel, takeFocus: Boolean) {
     }
     val on by TrafficMonitor.on.collectAsState()
     val corner by TrafficMonitor.corner.collectAsState()
-    val source by TrafficMonitor.source.collectAsState()
     Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState())) {
         MenuRow(Glyph.ChevronLeft, stringResource(R.string.cc_traffic), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Main) })
         Spacer(Modifier.height(8.dp))
@@ -331,13 +330,6 @@ private fun TrafficPage(vm: HomeViewModel, takeFocus: Boolean) {
             )
         }
         Spacer(Modifier.height(14.dp))
-        BasicText(
-            stringResource(R.string.cc_traffic_source) + " · " +
-                stringResource(if (source == TrafficMonitor.Source.Root) R.string.cc_traffic_source_root else R.string.cc_traffic_source_system),
-            style = Type.Caption,
-            modifier = Modifier.padding(start = 14.dp, end = 14.dp),
-        )
-        Spacer(Modifier.height(8.dp))
         BasicText(
             stringResource(R.string.cc_traffic_overlay_hint),
             style = Type.Caption,

@@ -19,9 +19,6 @@
     <string name="cc_traffic_pos_tr">Справа зверху</string>
     <string name="cc_traffic_pos_bl">Зліва знизу</string>
     <string name="cc_traffic_pos_br">Справа знизу</string>
-    <string name="cc_traffic_source">Джерело</string>
-    <string name="cc_traffic_source_root">Root</string>
-    <string name="cc_traffic_source_system">Системний</string>
     <string name="cc_traffic_overlay_hint">Показується поверх будь-яких застосунків. Якщо вікно не з’явилося, дозвольте застосунку «поверх інших вікон» у налаштуваннях системи.</string>
     <string name="cc_home_default">Xinghe — ваш головний екран</string>
     <string name="cc_home_guarded">Home Guard увімкнено</string>

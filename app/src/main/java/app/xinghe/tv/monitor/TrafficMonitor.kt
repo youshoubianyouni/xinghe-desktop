@@ -9,21 +9,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 /**
  * The flow of traffic through the TV, watched: up and down, in bytes a second.
  *
- * The totals are told apart once a second and the difference smoothed so the number does not
- * twitch. Where the totals come from depends on the TV: with root at hand they are read out of
- * `/proc/net/dev` through `su` — the one reading the system itself keeps, over every interface,
- * however strict its SELinux rules are about who may ask; without root, the same totals are read
- * the public way, from the per-interface counters in sysfs, falling back to [TrafficStats] when
- * those are not on show. The sampler only runs while Home is up.
+ * The way 星河守卫 reads its whole-machine rate: [TrafficStats]'s system-wide running totals,
+ * told apart once a second, the difference smoothed so the number does not twitch. These are the
+ * totals the system itself keeps for every network, no root asked and no SELinux rule in the way.
+ * The per-device counters in /proc/net/dev and sysfs were tried and let go — they count the link
+ * layer (frame headers, ARP, broadcasts) and on some chipsets double-count through offload
+ * interfaces, which read as an up rate too high. The sampler only runs while the reading is on.
  */
 object TrafficMonitor {
 
@@ -32,9 +28,6 @@ object TrafficMonitor {
 
     /** Which corner of the screen the reading sits in. */
     enum class Corner { TopStart, TopEnd, BottomStart, BottomEnd }
-
-    /** Where the totals were read from at the last tick. */
-    enum class Source { System, Root }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _speed = MutableStateFlow(Speed(0, 0))
@@ -49,13 +42,9 @@ object TrafficMonitor {
     /** The corner the reading is pinned to (the setting in Control Center). */
     val corner: StateFlow<Corner> = _corner
 
-    private val _source = MutableStateFlow(Source.System)
-    /** Where the last tick's totals came from, shown in Control Center. */
-    val source: StateFlow<Source> = _source
-
     private var started = false
 
-    /** The corner names of [Corner], in reading order for the picker. */
+    /** The corners of [Corner], in reading order for the picker. */
     val corners = listOf(Corner.TopStart, Corner.TopEnd, Corner.BottomStart, Corner.BottomEnd)
 
     /** Reads the switches back, and remembers them, in the app's own settings. */
@@ -95,109 +84,35 @@ object TrafficMonitor {
         load(context)
         if (started || !_on.value) return
         started = true
-        // Root is probed once per run of the loop: a `su` found on disk is asked to prove itself,
-        // since a file named su alone has let people down before.
-        val rooted = probeRoot()
-        // The totals over every interface but loopback, as the system itself counts them, read the
-        // public way. These paths are opened once; the interfaces of a TV do not come and go.
-        val nets = File("/sys/class/net").listFiles()
-            ?.map { it.name }
-            ?.filter { it != "lo" }
-            ?.toSet()
-            ?: emptySet()
         scope.launch {
             var lastTx = -1L
             var lastRx = -1L
             var lastAt = System.currentTimeMillis()
             while (_on.value) {
                 delay(1_000)
-                // Root first, when there is root: a full reading out of /proc/net/dev. Should the
-                // su call hang or come back empty — an unfinished boot, a manager asking for
-                // permission with no one to answer — the tick falls to the public way instead.
-                var totals = if (rooted) withTimeoutOrNull(900) {
-                    runInterruptible(Dispatchers.IO) { rootTotals() }
-                } else null
-                _source.value = if (totals != null) Source.Root else Source.System
-                if (totals == null) {
-                    var tx = 0L
-                    var rx = 0L
-                    for (net in nets) {
-                        tx += readTotal("/sys/class/net/$net/statistics/tx_bytes")
-                        rx += readTotal("/sys/class/net/$net/statistics/rx_bytes")
-                    }
-                    // A counter that went backwards (a interface gone away) reads as nothing.
-                    if (tx == 0L && rx == 0L) {
-                        tx = TrafficStats.getTotalTxBytes()
-                        rx = TrafficStats.getTotalRxBytes()
-                    }
-                    totals = tx to rx
-                }
+                // The system's own running totals; UNSUPPORTED reads as nothing.
+                val tx = TrafficStats.getTotalTxBytes().coerceAtLeast(0)
+                val rx = TrafficStats.getTotalRxBytes().coerceAtLeast(0)
                 val now = System.currentTimeMillis()
                 if (lastTx >= 0) {
                     val factor = 1000.0 / (now - lastAt).coerceAtLeast(200)
-                    val up = ((totals.first - lastTx) * factor).toLong().let { if (it < 0) 0 else it }
-                    val down = ((totals.second - lastRx) * factor).toLong().let { if (it < 0) 0 else it }
+                    val up = ((tx - lastTx) * factor).toLong().let { if (it < 0) 0 else it }
+                    val down = ((rx - lastRx) * factor).toLong().let { if (it < 0) 0 else it }
                     val old = _speed.value
-                    // The same mild smoothing TVBoxNetGuard gives its window: six tenths new.
+                    // The same mild smoothing 星河守卫 gives its window: six tenths new.
                     _speed.value = Speed(
                         tx = (old.tx * 0.4 + up * 0.6).toLong(),
                         rx = (old.rx * 0.4 + down * 0.6).toLong(),
                     )
                 }
-                lastTx = totals.first
-                lastRx = totals.second
+                lastTx = tx
+                lastRx = rx
                 lastAt = now
             }
             started = false
             _speed.value = Speed(0, 0)
         }
     }
-
-    /** A `su` on disk, and one that answers; without both, the public way serves. */
-    private fun probeRoot(): Boolean {
-        val files = listOf(
-            "/system/bin/su", "/system/xbin/su", "/sbin/su",
-            "/vendor/bin/su", "/su/bin/su", "/system/sd/xbin/su",
-        ).map(::File).any { it.exists() }
-        if (!files) return false
-        return runCatching {
-            val p = ProcessBuilder("su", "-c", "id").start()
-            val done = p.waitFor(2, TimeUnit.SECONDS)
-            val out = if (done) p.inputStream.bufferedReader().readText() else ""
-            p.destroy()
-            done && out.contains("uid=0")
-        }.getOrDefault(false)
-    }
-
-    /**
-     * Every interface's totals at once, out of `/proc/net/dev` with root's leave. Null when su
-     * would not speak — the caller then reads the public way this tick.
-     */
-    private fun rootTotals(): Pair<Long, Long>? {
-        val p = ProcessBuilder("su", "-c", "cat /proc/net/dev").start()
-        val ok = p.waitFor(800, TimeUnit.MILLISECONDS)
-        if (!ok) { p.destroy(); return null }
-        val text = p.inputStream.bufferedReader().readText()
-        p.destroy()
-        var tx = 0L
-        var rx = 0L
-        var any = false
-        for (line in text.lineSequence()) {
-            val sep = line.indexOf(':')
-            if (sep < 0) continue
-            val face = line.substring(0, sep).trim()
-            if (face == "lo" || face.isEmpty()) continue
-            val f = line.substring(sep + 1).trim().split(Regex("\\s+"))
-            if (f.size < 9) continue
-            rx += f[0].toLongOrNull() ?: 0L
-            tx += f[8].toLongOrNull() ?: 0L
-            any = true
-        }
-        return if (any) tx to rx else null
-    }
-
-    private fun readTotal(path: String): Long =
-        runCatching { File(path).readText().trim().toLong() }.getOrDefault(0L)
 
     /** A rate as people read it: 1.2 MB/s, 38 KB/s. */
     fun rate(bytesPerSec: Long): String {
